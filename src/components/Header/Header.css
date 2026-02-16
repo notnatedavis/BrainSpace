@@ -1,1 +1,13 @@
 /*   src/components/Header/Header.css */
+
+.header {
+  background-color: var(--color-primary);
+  color: white;
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.header h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}

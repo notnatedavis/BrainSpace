@@ -1,1 +1,20 @@
 /*   src/pages/Dashboard/Dashboard.css */
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.dashboard-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: var(--space-lg);
+  overflow-y: auto;
+  background-color: var(--color-background);
+}

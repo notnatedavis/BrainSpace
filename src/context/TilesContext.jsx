@@ -22,3 +22,5 @@ export const TilesProvider = ({ children }) => {
     </TilesContext.Provider>
   );
 };
+
+export default TilesContext; // is this not needed ?

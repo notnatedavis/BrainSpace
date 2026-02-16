@@ -1,5 +1,7 @@
 # BrainSpace
 
+x
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Features](#features)
@@ -29,9 +31,11 @@ _macOS_
 ## Project-Structure
 BrainSpace/
 - public/
+    - assets/
+        - `test.jpg`
 - src/
     - assets/
-        - `test_img.png`
+        - `test.jpg`
     - components/
         - common/
             - `ErrorBoundary.jsx`
@@ -65,9 +69,12 @@ BrainSpace/
     - `App.jsx`
     - `index.css`
     - `index.js`
+    - `main.jsx`
 - `.gitignore`
+- `index.html`
 - `package.json`
 - `ReadMe.md`
+- `vite.config.js`
 
 
 ## Additional-Info

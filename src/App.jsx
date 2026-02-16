@@ -2,12 +2,15 @@
 
 // ----- Imports -----
 import { TilesProvider } from './context/TilesContext';
+import Dashboard from './pages/Dashboard/Dashboard';
 
 // ----- Main -----
 function App() {
   return (
     <TilesProvider>
-      {/* router and page components */}
+      <Dashboard />
     </TilesProvider>
   );
 }
+
+export default App;
