@@ -1,13 +1,36 @@
 /*   src/components/Header/Header.css */
 
 .header {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: var(--color-surface);
+  color: var(--color-text);
   padding: var(--space-md) var(--space-lg);
   box-shadow: var(--shadow-sm);
+  border-radius: var(--border-radius);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .header h1 {
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin: 0;
+}
+
+.green-button {
+  background-color: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-size: var(--font-size-sm);
+}
+
+.green-button:hover {
+  background-color: #059669;  /* darker green */
 }

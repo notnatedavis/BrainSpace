@@ -5,7 +5,7 @@ import React from 'react';
 import './Tile.css';
 
 // ----- Main -----
-const Tile = ({ tile }) => {
+const Tile = ({ tile, onRemove }) => {
   return (
     <div className="tile">
       <h3 className="tile-title">{tile.title}</h3>
@@ -16,7 +16,9 @@ const Tile = ({ tile }) => {
         {tile.type === 'note' && <p>{tile.content}</p>}
         {tile.type === 'info' && <p>{tile.content}</p>}
       </div>
-      {/* Placeholder for future drag handle */}
+      <div className="remove-tile-btn">
+        <button onClick={() => onRemove(tile.id)}>✕</button>
+      </div>
     </div>
   );
 };
