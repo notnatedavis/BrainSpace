@@ -4,31 +4,32 @@
 import React from 'react';
 import Tile from '../Tile/Tile';
 import './TileContainer.css';
+import { getTileScale } from '../../utils/layoutHelpers';
 
 // ----- Main -----
-const TileContainer = ({ tiles, onRemoveTile, columns = 4 }) => {
-  if (tiles.length === 0) {
-    return (
-      <div className="tile-container empty">
-        <p className="empty-message">No tiles yet. Click the green button to add one.</p>
-      </div>
-    );
-  }
-
-  // Define a scaling factor based on columns (tweak the formula as needed)
-  const tileScale = 0.8 + (columns - 3) * 0.1; // e.g., 3 cols → 1.0, 6 cols → 1.3? Actually we want smaller tiles → smaller text? Let's invert: more columns → smaller scale.
-  // Better: base scale at 3 columns = 1, at 6 columns = 0.7
-  const scale = 1.2 - (columns - 3) * 0.1; // 3→1.2, 4→1.1, 5→1.0, 6→0.9
+const TileContainer = ({ tiles, onRemoveTile, gridSize = 4 }) => {
+  const totalCells = gridSize * gridSize;
+  const scale = getTileScale(gridSize); // formula adjusted (optional)
 
   const gridStyle = {
-    gridTemplateColumns: `repeat(${columns}, 1fr)`,
+    gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+    gridTemplateRows: `repeat(${gridSize}, auto)`,
     '--tile-scale': scale,
   };
 
+  // take only the first totalCells tiles (if there are more)
+  const visibleTiles = tiles.slice(0, totalCells);
+  const placeholdersNeeded = totalCells - visibleTiles.length;
+
   return (
-    <div className="tile-container" style={gridStyle}>
-      {tiles.map(tile => (
+    <div className="tile-container fixed-grid" style={gridStyle}>
+      {visibleTiles.map(tile => (
         <Tile key={tile.id} tile={tile} onRemove={onRemoveTile} />
+      ))}
+      {Array.from({ length: placeholdersNeeded }).map((_, index) => (
+        <div key={`placeholder-${index}`} className="tile-placeholder">
+          <span className="dot" />
+        </div>
       ))}
     </div>
   );

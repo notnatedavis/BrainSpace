@@ -14,6 +14,9 @@
   flex-direction: column;
   font-size: calc(var(--font-size-base) * var(--tile-scale, 1));
   padding: calc(1.5rem * var(--tile-scale, 1));
+  max-width: 280px;
+  width: 100%; 
+  margin: 0 auto;
 }
 
 .tile:hover {

@@ -5,9 +5,9 @@ import React from 'react';
 import './Sidebar.css';
 
 // ----- Main -----
-const Sidebar = ({ columnCount, setColumnCount }) => {
+const Sidebar = ({ gridSize, setGridSize }) => {
   const handleSliderChange = (e) => {
-    setColumnCount(parseInt(e.target.value, 10));
+    setGridSize(parseInt(e.target.value, 10));
   };
 
   return (
@@ -18,14 +18,14 @@ const Sidebar = ({ columnCount, setColumnCount }) => {
         <li>Menu Item 3</li>
       </ul>
       <div className="sidebar-slider">
-        <label htmlFor="column-slider">Columns: {columnCount}</label>
+        <label htmlFor="grid-slider">Grid: {gridSize}×{gridSize}</label>
         <input
           type="range"
-          id="column-slider"
+          id="grid-slider"
           min="3"
           max="6"
           step="1"
-          value={columnCount}
+          value={gridSize}
           onChange={handleSliderChange}
         />
       </div>

@@ -2,6 +2,7 @@
 
 // ----- Imports -----
 import React, { useContext , useState } from 'react';
+import { useGridSize } from '../../hooks/useGridSize';
 import Header from '../../components/Header/Header';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import TileContainer from '../../components/TileContainer/TileContainer';
@@ -11,15 +12,15 @@ import './Dashboard.css';
 // ----- Main -----
 const Dashboard = () => {
   const { tiles, removeTile } = useContext(TilesContext);
-  const [columnCount, setColumnCount] = useState(4); // new state for column count
+  const [gridSize, setGridSize] = useGridSize(4); // controls both dimensions
 
   return (
     <div className="dashboard">
       <Header />
       <div className="dashboard-main">
-        <Sidebar columnCount={columnCount} setColumnCount={setColumnCount} />
+        <Sidebar gridSize={gridSize} setGridSize={setGridSize} />
         <main className="dashboard-content">
-          <TileContainer tiles={tiles} onRemoveTile={removeTile} columns={columnCount} />
+          <TileContainer tiles={tiles} onRemoveTile={removeTile} gridSize={gridSize} />
         </main>
       </div>
     </div>
