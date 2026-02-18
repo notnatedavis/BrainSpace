@@ -9,28 +9,39 @@
   transition: all 0.3s ease;
   overflow: hidden;
   border: 1px solid var(--color-border);
+  aspect-ratio: 1 / 1;               /* square tiles */
+  display: flex;
+  flex-direction: column;
+  font-size: calc(var(--font-size-base) * var(--tile-scale, 1));
+  padding: calc(1.5rem * var(--tile-scale, 1));
 }
 
 .tile:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+  font-size: calc(1.1rem * var(--tile-scale, 1));
+  margin-bottom: calc(1rem * var(--tile-scale, 1));
+  padding-bottom: calc(0.5rem * var(--tile-scale, 1));
 }
 
 .tile-title {
   margin: 0 0 1rem 0;
-  font-size: 1.1rem;
+  font-size: calc(0.8rem * var(--tile-scale, 1));
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 0.5rem;
+  flex-shrink: 0;                    /* prevent title from shrinking */
 }
 
 .tile-content {
-  min-height: 120px;
+  flex: 1;                           /* take remaining space */
+  min-height: 0;                     /* allow content to scroll if needed */
+  overflow-y: auto;                  /* scroll if content overflows */
+  color: var(--color-text);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  color: var(--color-text);
 }
 
 .tile-content img {
@@ -47,6 +58,9 @@
   opacity: 0;
   transition: opacity 0.2s ease;
   z-index: 10;
+  width: calc(24px * var(--tile-scale, 1));
+  height: calc(24px * var(--tile-scale, 1));
+  font-size: calc(14px * var(--tile-scale, 1));
 }
 
 .tile:hover .remove-tile-btn {
