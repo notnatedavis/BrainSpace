@@ -2,15 +2,9 @@
 
 .tile-container {
   display: grid;
-  gap: var(--space-lg);
+  gap: var(--space-lg); /* space between tiles */
   align-items: start;
-  min-height: 300px;
-}
-
-/* For the fixed square grid */
-.tile-container.fixed-grid {
-  grid-template-rows: repeat(auto-fill, minmax(0, 1fr)); /* ensures rows take equal height */
-  height: 100%; /* if you want the container to fill the available space */
+  min-height: 300px; /* min height of container */
 }
 
 /* Placeholder styling */

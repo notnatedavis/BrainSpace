@@ -31,7 +31,7 @@ export const TilesProvider = ({ children }) => {
   const updateTilePosition = (id, newPosition) => {};
 
   return (
-    <TilesContext.Provider value={{ tiles, addTile, removeTile, updateTilePosition }}>
+    <TilesContext.Provider value={{ tiles, addTile, removeTile, updateTilePosition , setTiles}}>
       {children}
     </TilesContext.Provider>
   );

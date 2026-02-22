@@ -6,6 +6,6 @@
  * @returns {number} Scale factor between 0.9 and 1.2.
  */
 export const getTileScale = (gridSize) => {
-  // Example: 3 → 1.2, 6 → 0.9
-  return 1.2 - (gridSize - 3) * 0.1;
+  // Example: 3 → 1
+  return 1 - (gridSize - 3) * 0.1;
 };

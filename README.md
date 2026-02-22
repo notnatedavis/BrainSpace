@@ -67,6 +67,8 @@ BrainSpace/
     - context/
         - `TilesContext.jsx`
     - hooks/
+        - `useDragDrop.js`
+        - `useGridSize.js`
         - `useTiles.js`
     - pages/
         - Dashboard/
@@ -78,9 +80,7 @@ BrainSpace/
     - utils/
         - `layoutHelpers.js`
         - `logger.js`
-    - `App.css`
     - `App.jsx`
-    - `index.css`
     - `index.js`
     - `main.jsx`
 - `.gitignore`

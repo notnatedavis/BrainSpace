@@ -11,7 +11,7 @@ import './Dashboard.css';
 
 // ----- Main -----
 const Dashboard = () => {
-  const { tiles, removeTile } = useContext(TilesContext);
+  const { tiles, removeTile, setTiles } = useContext(TilesContext);
   const [gridSize, setGridSize] = useGridSize(4); // controls both dimensions
 
   return (
@@ -20,7 +20,7 @@ const Dashboard = () => {
       <div className="dashboard-main">
         <Sidebar gridSize={gridSize} setGridSize={setGridSize} />
         <main className="dashboard-content">
-          <TileContainer tiles={tiles} onRemoveTile={removeTile} gridSize={gridSize} />
+          <TileContainer tiles={tiles} onRemoveTile={removeTile} gridSize={gridSize} setTiles={setTiles} />
         </main>
       </div>
     </div>
