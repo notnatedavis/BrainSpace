@@ -33,9 +33,9 @@ The project is built with React (using functional components and hooks) and Vite
 - Logger Utility – conditionally logs messages based on the environment (debug in development, error only in production)
 
 ## Usage 
-1. cd BrainSpace
-2. npm install
-3. npm run dev
+1. `cd BrainSpace`
+2. `npm install`
+3. `npm run dev`
     - npm run build
 
 ## Configuration

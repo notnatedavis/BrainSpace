@@ -18,11 +18,16 @@ const TileContainer = ({ tiles, onRemoveTile, gridSize = 4, setTiles }) => {
     endDrag,
   } = useDragDrop(tiles, setTiles, containerRef, gridSize);
 
+  console.log('TileContainer render, tiles order:', tiles.map(t => t.id).join(','));
+  useEffect(() => {
+    console.log('tiles changed:', tiles.map(t => t.id).join(','));
+  }, [tiles]);
+  
   // attach global mouse move/up during drag
   useEffect(() => {
     if (draggedIndex !== null) {
       const handleMouseMove = (e) => updateDrag(e.clientX, e.clientY);
-      const handleMouseUp = () => endDrag();
+      const handleMouseUp = (e) => endDrag(e);   // ← pass event
 
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
@@ -50,8 +55,12 @@ const TileContainer = ({ tiles, onRemoveTile, gridSize = 4, setTiles }) => {
   const visibleTiles = tiles.slice(0, totalCells);
   const placeholdersNeeded = totalCells - visibleTiles.length;
 
+  // Temporary key to force re-render when tile order changes – helps diagnose update issues
+  const gridKey = tiles.map(t => t.id).join('-');
+
   return (
     <div
+      key={gridKey} // <-- temporary diagnostic key (can be removed later)
       ref={containerRef}
       className="tile-container fixed-grid"
       style={gridStyle}
