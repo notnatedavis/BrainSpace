@@ -1,4 +1,4 @@
-// src/components/tileTypes/ImageTile/ImageTile.jsx
+//   src/components/tileTypes/ImageTile/ImageTile.jsx
 
 // ----- Imports -----
 import React from 'react';
