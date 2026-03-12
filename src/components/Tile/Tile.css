@@ -136,3 +136,9 @@
   background: #059669;
   transform: scale(0.95);
 }
+
+/* Drop target highlight – appears when a tile is the current drop target */
+.drop-target {
+  border: 2px solid var(--color-accent) !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}

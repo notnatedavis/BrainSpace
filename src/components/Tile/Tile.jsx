@@ -5,7 +5,7 @@ import React from 'react';
 import './Tile.css';
 
 // ----- Main -----
-const Tile = ({ tile, onRemove , onDragStart, isDragging }) => {
+const Tile = ({ tile, onRemove, onDragStart, isDragging, isTarget }) => {
   const handleMouseDown = (e) => {
     // prevent default to avoid text selection
     e.preventDefault();
@@ -15,7 +15,7 @@ const Tile = ({ tile, onRemove , onDragStart, isDragging }) => {
   };
 
   return (
-    <div className={`tile ${isDragging ? 'dragging' : ''}`}>
+    <div className={`tile ${isDragging ? 'dragging' : ''} ${isTarget ? 'drop-target' : ''}`}>
       <h3 className="tile-title">{tile.title}</h3>
       <div className="tile-content">
         {/* content as before */}

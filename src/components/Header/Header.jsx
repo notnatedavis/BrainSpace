@@ -2,7 +2,7 @@
 
 // ----- Imports -----
 import React, { useContext } from 'react';
-import TilesContext from '../../context/TilesContext';
+import { TilesContext } from '../../context/TilesContext';
 import './Header.css';
 
 // ----- Main -----

@@ -1,14 +1,15 @@
-// src/components/TileContainer/TileContainer.jsx
+//   src/components/TileContainer/TileContainer.jsx
 
-// ----- Imports -----
-import React, { useRef, useEffect, useCallback } from 'react';
+// ----- Imports ----- 
+import React, { useRef, useEffect, useCallback, useContext } from 'react';
 import Tile from '../Tile/Tile';
 import { useDragDrop } from '../../hooks/useDragDrop';
-import { getTileScale } from '../../utils/layoutHelpers';
+import { TilesContext } from '../../context/TilesContext';
 import './TileContainer.css';
 
-// ----- Main -----
-const TileContainer = ({ tiles, onRemoveTile, gridSize = 4, setTiles }) => {
+// ----- Main ----- 
+const TileContainer = () => {
+  const { tiles, gridSize, moveTile, removeTile } = useContext(TilesContext);
   const containerRef = useRef(null);
   const {
     draggedIndex,
@@ -16,9 +17,8 @@ const TileContainer = ({ tiles, onRemoveTile, gridSize = 4, setTiles }) => {
     startDrag,
     updateDrag,
     endDrag,
-  } = useDragDrop(tiles, setTiles, containerRef, gridSize);
+  } = useDragDrop(containerRef, gridSize, moveTile);
 
-  // attach global mouse move/up during drag
   useEffect(() => {
     if (draggedIndex !== null) {
       const handleMouseMove = (e) => updateDrag(e.clientX, e.clientY);
@@ -38,41 +38,47 @@ const TileContainer = ({ tiles, onRemoveTile, gridSize = 4, setTiles }) => {
     startDrag(index, clientX, clientY);
   }, [startDrag]);
 
-  const totalCells = gridSize * gridSize;
-  const scale = getTileScale(gridSize);
+  const scale = 1 - (gridSize - 3) * 0.1; // from your layoutHelpers
 
   const gridStyle = {
     gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-    gridTemplateRows: `repeat(${gridSize}, 1fr)`,
     '--tile-scale': scale,
   };
-
-  const visibleTiles = tiles.slice(0, totalCells);
-  const placeholdersNeeded = totalCells - visibleTiles.length;
 
   return (
     <div
       ref={containerRef}
-      className="tile-container fixed-grid"
+      className="tile-container"
       style={gridStyle}
     >
-      {visibleTiles.map((tile, index) => (
-        <Tile
-          key={tile.id}
-          tile={tile}
-          onRemove={onRemoveTile}
-          onDragStart={(clientX, clientY) => handleDragStart(index, clientX, clientY)}
-          isDragging={draggedIndex === index}
-        />
-      ))}
-      {Array.from({ length: placeholdersNeeded }).map((_, index) => (
-        <div
-          key={`placeholder-${index}`}
-          className={`tile-placeholder ${targetIndex === visibleTiles.length + index ? 'drop-target' : ''}`}
-        >
-          <span className="dot" />
-        </div>
-      ))}
+      {tiles.map((cell, index) => {
+        const isDragging = draggedIndex === index;
+        const isTarget = targetIndex === index;
+
+        if (cell === null) {
+          // Empty cell – render placeholder
+          return (
+            <div
+              key={`cell-${index}`}
+              className={`tile-placeholder ${isTarget ? 'drop-target' : ''}`}
+            >
+              <span className="dot" />
+            </div>
+          );
+        } else {
+          // Cell with a tile
+          return (
+            <Tile
+              key={cell.id}
+              tile={cell}
+              onRemove={removeTile}
+              onDragStart={(clientX, clientY) => handleDragStart(index, clientX, clientY)}
+              isDragging={isDragging}
+              isTarget={isTarget}  // optional – you could highlight the tile itself when it's the target
+            />
+          );
+        }
+      })}
     </div>
   );
 };
