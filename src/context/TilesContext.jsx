@@ -19,6 +19,9 @@ export const TilesProvider = ({ children }) => {
     return grid;
   });
 
+  // State to track which tile is currently being edited (if any)
+  const [editingTileId, setEditingTileId] = useState(null);
+
   const addTile = useCallback(() => {
     const newTile = {
       id: Date.now(),
@@ -49,6 +52,15 @@ export const TilesProvider = ({ children }) => {
     });
   }, []);
 
+  // Update an existing tile's data (e.g., after editing)
+  const updateTile = useCallback((id, newData) => {
+    setTiles(prev =>
+      prev.map(cell =>
+        cell && cell.id === id ? { ...cell, ...newData } : cell
+      )
+    );
+  }, []);
+
   // Called when the slider changes the grid size
   const resizeGrid = useCallback((newSize) => {
     setGridSize(newSize);
@@ -71,6 +83,9 @@ export const TilesProvider = ({ children }) => {
     removeTile,
     moveTile,
     resizeGrid,
+    editingTileId,
+    setEditingTileId,
+    updateTile,
   };
 
   return (

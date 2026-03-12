@@ -64,6 +64,20 @@ BrainSpace/
         - TileContainer/
             - `TileContainer.css`
             - `TileContainer.jsx`
+        - tileTypes/
+            - ImageTile/
+                - `ImageTile.jsx`
+                - `ImageTileEdit.jsx`
+                - `index.js`
+            - InfoTile/
+                - `index.js`
+                - `InfoTile.jsx`
+                - `InfoTileEdit.jsx`
+            - NoteTile/
+                - `index.js`
+                - `NoteTile.jsx`
+                - `NoteTileEdit.jsx`
+            - `index.js`
     - context/
         - `TilesContext.jsx`
     - hooks/
@@ -88,7 +102,6 @@ BrainSpace/
 - `package.json`
 - `ReadMe.md`
 - `vite.config.js`
-
 
 ## Additional-Info
 
