@@ -2,6 +2,7 @@
 
 // ----- Imports -----
 import React, { createContext, useState, useCallback } from 'react';
+import tileTypes from '../components/tileTypes';
 export const TilesContext = createContext();
 
 const INITIAL_GRID_SIZE = 4;
@@ -11,27 +12,51 @@ const createEmptyGrid = (size) => Array(size * size).fill(null);
 export const TilesProvider = ({ children }) => {
   const [gridSize, setGridSize] = useState(INITIAL_GRID_SIZE);
   const [tiles, setTiles] = useState(() => {
-    // Start with some sample tiles in the first few cells
     const grid = createEmptyGrid(INITIAL_GRID_SIZE);
-    grid[0] = { id: 1, title: 'Image Tile', type: 'image', content: 'test.jpg' };
-    grid[1] = { id: 2, title: 'Note Tile', type: 'note', content: 'Sample note' };
-    grid[2] = { id: 3, title: 'Info Tile', type: 'info', content: 'Some info' };
+    grid[0] = { id: 1, title: 'Image Tile', type: 'image', content: 'test.jpg', alt: 'Test image' };
+    grid[1] = {
+      id: 2,
+      title: 'Note Tile',
+      type: 'note',
+      content: 'Sample note',
+      noteStyle: {
+        backgroundColor: '#ffffff',
+        bold: false,
+        italic: false,
+        underline: false,
+        fontSize: 'medium',
+        fontFamily: 'sans',
+        headerLevel: 0,
+      },
+    };
+    grid[2] = {
+      id: 3,
+      title: 'Info Tile',
+      type: 'info',
+      content: 'Some info',
+    };
+    // Optional: add a timer tile at index 3 if grid size > 3
+    // grid[3] = { id: 4, title: 'Timer', type: 'timer', mode: 'stopwatch', initialTime: 60 };
     return grid;
   });
 
-  // State to track which tile is currently being edited (if any)
   const [editingTileId, setEditingTileId] = useState(null);
 
-  const addTile = useCallback(() => {
+  const addTile = useCallback((type = 'note') => {
+    const typeDef = tileTypes[type];
+    if (!typeDef) {
+      console.warn(`Unknown tile type: ${type}, defaulting to note`);
+      type = 'note';
+    }
+    const defaultData = tileTypes[type].defaultData();
     const newTile = {
       id: Date.now(),
-      title: 'New Tile',
-      type: 'note',
-      content: 'Click to edit',
+      type: type,
+      ...defaultData,
     };
     setTiles(prev => {
       const firstEmpty = prev.findIndex(cell => cell === null);
-      if (firstEmpty === -1) return prev; // grid full – do nothing or handle differently
+      if (firstEmpty === -1) return prev;
       const next = [...prev];
       next[firstEmpty] = newTile;
       return next;
@@ -46,13 +71,11 @@ export const TilesProvider = ({ children }) => {
     if (fromIndex === toIndex) return;
     setTiles(prev => {
       const next = [...prev];
-      // swap the values (works for tile↔tile, tile↔null, null↔tile)
       [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
       return next;
     });
   }, []);
 
-  // Update an existing tile's data (e.g., after editing)
   const updateTile = useCallback((id, newData) => {
     setTiles(prev =>
       prev.map(cell =>
@@ -61,16 +84,13 @@ export const TilesProvider = ({ children }) => {
     );
   }, []);
 
-  // Called when the slider changes the grid size
   const resizeGrid = useCallback((newSize) => {
     setGridSize(newSize);
     setTiles(prev => {
       const newLength = newSize * newSize;
       if (newLength > prev.length) {
-        // expand with nulls
         return [...prev, ...Array(newLength - prev.length).fill(null)];
       } else {
-        // truncate – tiles that fall off are lost (you might want to warn or save them)
         return prev.slice(0, newLength);
       }
     });

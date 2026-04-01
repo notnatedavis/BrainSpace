@@ -14,9 +14,11 @@
   flex-direction: column;
   font-size: calc(var(--font-size-base) * var(--tile-scale, 1));
   padding: calc(1.5rem * var(--tile-scale, 1));
-  max-width: 280px;
+
+  /* limits tile width */
+  /* max-width: 280px;
   width: 100%; 
-  margin: 0 auto;
+  margin: 0 auto; */
 }
 
 .tile:hover {
@@ -28,7 +30,7 @@
 }
 
 .tile-title {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
   font-size: calc(0.8rem * var(--tile-scale, 1));
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);

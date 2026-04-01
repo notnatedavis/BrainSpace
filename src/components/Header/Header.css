@@ -34,3 +34,58 @@
 .green-button:hover {
   background-color: #059669;  /* darker green */
 }
+
+/* ------ Dropdown container – positions the menu relative to the button */
+
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+/* dropdown menu – expands to the left */
+.dropdown-menu {
+  position: absolute;
+
+  right: 100%;          /* Place the dropdown to the left of the button */
+  top: 0;               /* Align with the top of the button */
+  margin-right: 0.75rem; /* Add some spacing between dropdown and button */
+  
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: row;   /* horizontal layout */
+  gap: 0.25rem;          /* space between items */
+  padding: 0.5rem;
+  z-index: 100;
+  white-space: nowrap;   /* prevent text wrapping */
+}
+
+/* To make it expand horizontally to the left, we set right:0, so it starts from button's right edge and goes left */
+/* If you need more space to the left, adjust right value or use transform: translateX(-100%)? 
+   But right:0 with left:auto gives the effect of left expansion. */
+/* Additional fine‑tuning: if you want it to be exactly aligned left of button, you could set left: auto; right: 0; */
+.dropdown-menu {
+  /*max-width: calc(100vw - 2rem); /* Prevent going off-screen *
+  overflow-x: auto; */
+  right: 5.5rem;
+  left: auto;        /* ensures it doesn't stretch to left edge */
+}
+
+.dropdown-item {
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  text-align: left;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  transition: background-color 0.2s;
+  white-space: nowrap; /* prevent text from wrapping */
+}
+
+.dropdown-item:hover {
+  background-color: var(--color-background);
+}

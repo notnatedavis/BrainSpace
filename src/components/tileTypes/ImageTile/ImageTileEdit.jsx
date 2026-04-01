@@ -9,6 +9,16 @@ const ImageTileEdit = ({ tile, onSave }) => {
   const [src, setSrc] = useState(tile.content || '');
   const [alt, setAlt] = useState(tile.alt || '');
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setSrc(event.target.result); // base64 string
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave({ title, content: src, alt });
@@ -21,8 +31,12 @@ const ImageTileEdit = ({ tile, onSave }) => {
         <input value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
       <div>
-        <label>Image source (filename):</label>
+        <label>Image URL:</label>
         <input value={src} onChange={(e) => setSrc(e.target.value)} />
+      </div>
+      <div>
+        <label>Or upload an image:</label>
+        <input type="file" accept="image/*" onChange={handleFileUpload} />
       </div>
       <div>
         <label>Alt text:</label>

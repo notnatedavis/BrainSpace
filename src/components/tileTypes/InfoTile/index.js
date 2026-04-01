@@ -11,7 +11,14 @@ export default {
   component: InfoTile,
   editComponent: InfoTileEdit,
   defaultData: () => ({
-    title: 'New Info',
-    content: 'Some information',
+    title: 'Welcome to BrainSpace!',
+    content: `# How to Use
+
+- Click the **+ Add Tile** button in the header to add new tiles.
+- Hover over a tile to reveal the **remove** (✕) and **drag** (⣿) buttons.
+- Drag tiles to rearrange them.
+- Click on the content of any tile to edit its properties.
+
+Enjoy your workspace!`,
   }),
 };
