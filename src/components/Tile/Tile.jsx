@@ -8,7 +8,7 @@ import './Tile.css';
 
 // ----- Main -----
 const Tile = ({ tile, onRemove, onDragStart, isDragging, isTarget }) => {
-  const { setEditingTile } = useContext(TilesContext); // we'll add this later
+  const { setEditingTileId } = useContext(TilesContext);
 
   const typeDef = tileTypes[tile.type];
   if (!typeDef) {
@@ -18,13 +18,16 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, isTarget }) => {
   const TileContent = typeDef.component;
 
   const handleContentClick = () => {
-    // Open edit modal for this tile – implementation TBD
-    setEditingTile(tile.id);
+    setEditingTileId(tile.id);
   };
 
+  // Hide title for image tiles that have an image source
+  const isImageWithContent = tile.type === 'image' && tile.content;
+  const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${isTarget ? 'drop-target' : ''} ${isImageWithContent ? 'image-tile-filled' : ''}`;
+
   return (
-    <div className={`tile ${isDragging ? 'dragging' : ''} ${isTarget ? 'drop-target' : ''}`}>
-      <h3 className="tile-title">{tile.title}</h3>
+    <div className={tileClasses}>
+      {!isImageWithContent && <h3 className="tile-title">{tile.title}</h3>}
       <div className="tile-content" onClick={handleContentClick}>
         <TileContent tile={tile} />
       </div>

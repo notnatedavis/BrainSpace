@@ -5,9 +5,8 @@ import React, { useState } from 'react';
 
 // ----- Main -----
 const ImageTileEdit = ({ tile, onSave }) => {
-  const [title, setTitle] = useState(tile.title || '');
+  // Only keep the image source (content)
   const [src, setSrc] = useState(tile.content || '');
-  const [alt, setAlt] = useState(tile.alt || '');
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -21,28 +20,41 @@ const ImageTileEdit = ({ tile, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ title, content: src, alt });
+    // Save only the content (image source)
+    onSave({ content: src });
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
-        <label>Title:</label>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} />
-      </div>
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <div>
         <label>Image URL:</label>
-        <input value={src} onChange={(e) => setSrc(e.target.value)} />
+        <input 
+          value={src} 
+          onChange={(e) => setSrc(e.target.value)} 
+          placeholder="https://example.com/image.jpg"
+          style={{ width: '100%', padding: '0.5rem', marginTop: '0.25rem' }}
+        />
       </div>
       <div>
         <label>Or upload an image:</label>
-        <input type="file" accept="image/*" onChange={handleFileUpload} />
+        <input 
+          type="file" 
+          accept="image/*" 
+          onChange={handleFileUpload} 
+          style={{ marginTop: '0.25rem' }}
+        />
       </div>
-      <div>
-        <label>Alt text:</label>
-        <input value={alt} onChange={(e) => setAlt(e.target.value)} />
-      </div>
-      <button type="submit">Save</button>
+      <button type="submit" style={{ 
+        backgroundColor: 'var(--color-accent)', 
+        color: 'white', 
+        border: 'none', 
+        padding: '0.5rem 1rem', 
+        borderRadius: '8px', 
+        cursor: 'pointer',
+        marginTop: '0.5rem'
+      }}>
+        Save Image
+      </button>
     </form>
   );
 };

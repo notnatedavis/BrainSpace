@@ -1,19 +1,11 @@
-//   src/components/tileTypes/NoteTile/NoteTile.jsx
+// src/components/tileTypes/NoteTile/NoteTile.jsx
+import React, { useContext } from 'react';
+import { TilesContext } from '../../../context/TilesContext';
+import '../../Tile/Tile.css'; // Correct path to the CSS file
 
-// ----- Imports -----
-import React from 'react';
-
-// ----- Helper to apply formatting styles -----
-const applyStyle = (text, style) => {
-  let styledText = text;
-  if (style.bold) styledText = <strong>{styledText}</strong>;
-  if (style.italic) styledText = <em>{styledText}</em>;
-  if (style.underline) styledText = <u>{styledText}</u>;
-  return styledText;
-};
-
-// ----- Main -----
 const NoteTile = ({ tile }) => {
+  const { updateTile } = useContext(TilesContext);
+
   const { content, noteStyle = {} } = tile;
   const {
     backgroundColor = '#ffffff',
@@ -25,36 +17,59 @@ const NoteTile = ({ tile }) => {
     headerLevel = 0,
   } = noteStyle;
 
-  const style = {
-    backgroundColor,
-    padding: '1rem',
-    borderRadius: '8px',
-    height: '100%',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontFamily:
-      fontFamily === 'sans' ? 'sans-serif' : fontFamily === 'serif' ? 'serif' : 'monospace',
-    fontSize:
-      fontSize === 'small' ? '0.8rem' : fontSize === 'large' ? '1.2rem' : '1rem',
+  // Predefined color options for the toolbar button
+  const colorOptions = ['#ffffff', '#ffcccc', '#ccccff', '#ccffcc', '#ffffcc'];
+
+  const cycleColor = () => {
+    const currentIndex = colorOptions.indexOf(backgroundColor);
+    const nextIndex = (currentIndex + 1) % colorOptions.length;
+    updateTile(tile.id, {
+      noteStyle: { ...noteStyle, backgroundColor: colorOptions[nextIndex] }
+    });
   };
 
-  const formattedContent = applyStyle(content, { bold, italic, underline });
-
-  const headerElement = () => {
-    switch (headerLevel) {
-      case 1:
-        return <h1 style={{ margin: 0 }}>{formattedContent}</h1>;
-      case 2:
-        return <h2 style={{ margin: 0 }}>{formattedContent}</h2>;
-      case 3:
-        return <h3 style={{ margin: 0 }}>{formattedContent}</h3>;
-      default:
-        return <div>{formattedContent}</div>;
-    }
+  const toggleBold = () => {
+    updateTile(tile.id, {
+      noteStyle: { ...noteStyle, bold: !bold }
+    });
   };
 
-  return <div style={style}>{headerElement()}</div>;
+  // Build inline styles for the note content
+  const textStyles = {
+    fontWeight: bold ? 'bold' : 'normal',
+    fontStyle: italic ? 'italic' : 'normal',
+    textDecoration: underline ? 'underline' : 'none',
+    fontSize: fontSize === 'small' ? '0.875rem' : fontSize === 'large' ? '1.25rem' : '1rem',
+    fontFamily: fontFamily === 'serif' ? 'Georgia, serif' : fontFamily === 'mono' ? 'monospace' : 'sans-serif',
+    margin: 0,
+  };
+
+  // Render header if headerLevel > 0
+  const renderContent = () => {
+    const HeaderTag = headerLevel >= 1 && headerLevel <= 3 ? `h${headerLevel}` : 'div';
+    return (
+      <HeaderTag style={textStyles}>
+        {content || 'Click to edit note'}
+      </HeaderTag>
+    );
+  };
+
+  return (
+    <div className="note-tile" style={{ backgroundColor }}>
+      <div className="toolbar">
+        <button onClick={cycleColor} className="tool-btn" title="Change background color">
+          🎨 Color
+        </button>
+        <button onClick={toggleBold} className="tool-btn" title="Toggle bold">
+          <strong>B</strong>
+        </button>
+        {/* Add more buttons if needed */}
+      </div>
+      <div className="note-body">
+        {renderContent()}
+      </div>
+    </div>
+  );
 };
 
 export default NoteTile;

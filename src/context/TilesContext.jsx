@@ -5,7 +5,7 @@ import React, { createContext, useState, useCallback } from 'react';
 import tileTypes from '../components/tileTypes';
 export const TilesContext = createContext();
 
-const INITIAL_GRID_SIZE = 4;
+const INITIAL_GRID_SIZE = 3;
 const createEmptyGrid = (size) => Array(size * size).fill(null);
 
 // ----- Main -----
@@ -13,30 +13,13 @@ export const TilesProvider = ({ children }) => {
   const [gridSize, setGridSize] = useState(INITIAL_GRID_SIZE);
   const [tiles, setTiles] = useState(() => {
     const grid = createEmptyGrid(INITIAL_GRID_SIZE);
-    grid[0] = { id: 1, title: 'Image Tile', type: 'image', content: 'test.jpg', alt: 'Test image' };
-    grid[1] = {
-      id: 2,
-      title: 'Note Tile',
-      type: 'note',
-      content: 'Sample note',
-      noteStyle: {
-        backgroundColor: '#ffffff',
-        bold: false,
-        italic: false,
-        underline: false,
-        fontSize: 'medium',
-        fontFamily: 'sans',
-        headerLevel: 0,
-      },
-    };
-    grid[2] = {
-      id: 3,
-      title: 'Info Tile',
+    // Only one info tile at the first position
+    const infoDefault = tileTypes.info.defaultData();
+    grid[0] = {
+      id: 1,
       type: 'info',
-      content: 'Some info',
+      ...infoDefault,
     };
-    // Optional: add a timer tile at index 3 if grid size > 3
-    // grid[3] = { id: 4, title: 'Timer', type: 'timer', mode: 'stopwatch', initialTime: 60 };
     return grid;
   });
 

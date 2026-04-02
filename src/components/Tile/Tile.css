@@ -144,3 +144,68 @@
   border: 2px solid var(--color-accent) !important;
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
+
+/* When an image tile has a valid image, remove padding and let the image fill the tile */
+.tile.image-tile-filled {
+  padding: 0 !important;
+}
+
+.tile.image-tile-filled .tile-content {
+  padding: 0;
+  overflow: hidden; /* ensures image doesn't overflow rounded corners */
+  border-radius: var(--border-radius);
+}
+
+.tile.image-tile-filled .tile-content img {
+  border-radius: var(--border-radius);
+}
+
+.note-tile {
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  padding: 12px;
+  width: 300px;
+  transition: background-color 0.2s ease;
+  /* background-color is set inline via style prop – no hardcoded color here */
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.tool-btn {
+  background: rgba(255,255,255,0.7);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.1s;
+}
+.tool-btn:hover {
+  background: rgba(255,255,255,0.9);
+  transform: scale(1.02);
+}
+
+.note-body {
+  width: 100%;
+}
+
+.note-textbox {
+  width: 100%;
+  min-height: 150px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  resize: vertical;
+  background: rgba(255,255,255,0.6);
+  transition: font-weight 0.1s;
+}
+
+.note-textbox.bold {
+  font-weight: bold;
+}

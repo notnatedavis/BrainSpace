@@ -5,6 +5,7 @@ import React, { useContext } from 'react';
 import Header from '../../components/Header/Header';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import TileContainer from '../../components/TileContainer/TileContainer';
+import TileEditModal from '../../components/common/TileEditModal';
 import { TilesContext } from '../../context/TilesContext';
 import './Dashboard.css';
 
@@ -21,6 +22,7 @@ const Dashboard = () => {
           <TileContainer />
         </main>
       </div>
+      <TileEditModal />
     </div>
   );
 };

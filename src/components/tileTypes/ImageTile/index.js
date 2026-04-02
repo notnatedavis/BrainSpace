@@ -12,7 +12,7 @@ export default {
   editComponent: ImageTileEdit,
   defaultData: () => ({
     title: 'New Image',
-    content: 'test.jpg',   // will be used as src
+    content: '', 
     alt: 'Image description',
   }),
 };
