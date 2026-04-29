@@ -42,66 +42,69 @@ The project is built with React (using functional components and hooks) and Vite
 - x
 
 ## Project-Structure
+
+```bash
 BrainSpace/
-- public/
-    - assets/
-        - `test.jpg`
-- src/
-    - assets/
-        - `test.jpg`
-    - components/
-        - common/
-            - `ErrorBoundary.jsx`
-        - Header/
-            - `Header.css`
-            - `Header.jsx`
-        - Sidebar/
-            - `Sidebar.css`
-            - `Sidebar.jsx`
-        - Tile/
-            - `Tile.css`
-            - `Tile.jsx`
-        - TileContainer/
-            - `TileContainer.css`
-            - `TileContainer.jsx`
-        - tileTypes/
-            - ImageTile/
-                - `ImageTile.jsx`
-                - `ImageTileEdit.jsx`
-                - `index.js`
-            - InfoTile/
-                - `index.js`
-                - `InfoTile.jsx`
-                - `InfoTileEdit.jsx`
-            - NoteTile/
-                - `index.js`
-                - `NoteTile.jsx`
-                - `NoteTileEdit.jsx`
-            - `index.js`
-    - context/
-        - `TilesContext.jsx`
-    - hooks/
-        - `useDragDrop.js`
-        - `useGridSize.js`
-        - `useTiles.js`
-    - pages/
-        - Dashboard/
-            - `Dashboard.css`
-            - `Dashboard.jsx`
-    - styles/
-        - `global.css`
-        - `variables.css`
-    - utils/
-        - `layoutHelpers.js`
-        - `logger.js`
-    - `App.jsx`
-    - `index.js`
-    - `main.jsx`
-- `.gitignore`
-- `index.html`
-- `package.json`
-- `ReadMe.md`
-- `vite.config.js`
+├── public/
+│   └── assets/
+│       └── test.jpg
+├── src/
+│   ├── assets/
+│   │   └── test.jpg
+│   ├── components/
+│   │   ├── common/
+│   │   │   └── ErrorBoundary.jsx
+│   │   ├── Header/
+│   │   │   ├── Header.css
+│   │   │   └── Header.jsx
+│   │   ├── Sidebar/
+│   │   │   ├── Sidebar.css
+│   │   │   └── Sidebar.jsx
+│   │   ├── Tile/
+│   │   │   ├── Tile.css
+│   │   │   └── Tile.jsx
+│   │   ├── TileContainer/
+│   │   │   ├── TileContainer.css
+│   │   │   └── TileContainer.jsx
+│   │   └── tileTypes/
+│   │       ├── ImageTile/
+│   │       │   ├── ImageTile.jsx
+│   │       │   ├── ImageTileEdit.jsx
+│   │       │   └── index.js
+│   │       ├── InfoTile/
+│   │       │   ├── index.js
+│   │       │   ├── InfoTile.jsx
+│   │       │   └── InfoTileEdit.jsx
+│   │       ├── NoteTile/
+│   │       │   ├── index.js
+│   │       │   ├── NoteTile.jsx
+│   │       │   └── NoteTileEdit.jsx
+│   │       └── index.js
+│   ├── context/
+│   │   └── TilesContext.jsx
+│   ├── hooks/
+│   │   ├── useDragDrop.js
+│   │   ├── useGridSize.js
+│   │   └── useTiles.js
+│   ├── pages/
+│   │   └── Dashboard/
+│   │       ├── Dashboard.css
+│   │       └── Dashboard.jsx
+│   ├── styles/
+│   │   ├── global.css
+│   │   └── variables.css
+│   ├── utils/
+│   │   ├── layoutHelpers.js
+│   │   └── logger.js
+│   ├── App.jsx
+│   ├── index.js
+│   └── main.jsx
+├── .gitignore
+├── index.html
+├── package.json
+├── ReadMe.md
+└── vite.config.js
+```
 
 ## Additional-Info
 
