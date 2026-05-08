@@ -29,6 +29,37 @@
   padding-bottom: calc(0.5rem * var(--tile-scale, 1));
 }
 
+/* ------ Note tile – the note itself fills the entire tile, no inner pad / border ------ */
+.tile.note-tile {
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.tile.note-tile:hover {
+  transform: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.tile.note-tile .tile-title {
+  display: none;           /* remove the "New Note" header */
+}
+
+.tile.note-tile .remove-tile-btn,
+.tile.note-tile .drag-handle {
+  z-index: 20;             /* keep remove/drag above the note content */
+}
+
+.tile.note-tile .tile-content {
+  padding: 0;
+  height: 100%;            /* allow NoteTile to stretch fully */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ------ end note tile ------ */
+
 .tile-title {
   margin: 0 0 0.75rem 0;
   font-size: calc(0.8rem * var(--tile-scale, 1));
@@ -158,54 +189,4 @@
 
 .tile.image-tile-filled .tile-content img {
   border-radius: var(--border-radius);
-}
-
-.note-tile {
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  padding: 12px;
-  width: 300px;
-  transition: background-color 0.2s ease;
-  /* background-color is set inline via style prop – no hardcoded color here */
-}
-
-.toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.tool-btn {
-  background: rgba(255,255,255,0.7);
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: 0.1s;
-}
-.tool-btn:hover {
-  background: rgba(255,255,255,0.9);
-  transform: scale(1.02);
-}
-
-.note-body {
-  width: 100%;
-}
-
-.note-textbox {
-  width: 100%;
-  min-height: 150px;
-  padding: 10px;
-  font-family: inherit;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  resize: vertical;
-  background: rgba(255,255,255,0.6);
-  transition: font-weight 0.1s;
-}
-
-.note-textbox.bold {
-  font-weight: bold;
 }

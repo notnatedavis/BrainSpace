@@ -38,11 +38,18 @@ const TileContainer = () => {
     startDrag(index, clientX, clientY);
   }, [startDrag]);
 
-  const scale = 1 - (gridSize - 3) * 0.1; // from your layoutHelpers
+  // ----- Dynamic tile sizing & centering -----
+  const baseSize = 220; // starting tile size (px)
+  const scale = 1 - (gridSize - 3) * 0.1; // original scaling curve
+  const tileSize = Math.round(baseSize * scale); // dynamic tile width/height
 
   const gridStyle = {
-    gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-    '--tile-scale': scale,
+    gridTemplateColumns: `repeat(${gridSize}, ${tileSize}px)`,
+    gridAutoRows: `${tileSize}px`,
+    gap: 'var(--space-lg)',
+    justifyContent: 'center', // centers the grid
+    overflow: 'auto', // scroll if the grid still overflows
+    '--tile-scale': scale, // keep content scaling
   };
 
   return (
@@ -56,7 +63,7 @@ const TileContainer = () => {
         const isTarget = targetIndex === index;
 
         if (cell === null) {
-          // Empty cell – render placeholder
+          // empty cell – render placeholder
           return (
             <div
               key={`cell-${index}`}
@@ -66,7 +73,7 @@ const TileContainer = () => {
             </div>
           );
         } else {
-          // Cell with a tile
+          // cell with a tile
           return (
             <Tile
               key={cell.id}
@@ -74,7 +81,7 @@ const TileContainer = () => {
               onRemove={removeTile}
               onDragStart={(clientX, clientY) => handleDragStart(index, clientX, clientY)}
               isDragging={isDragging}
-              isTarget={isTarget}  // optional – you could highlight the tile itself when it's the target
+              isTarget={isTarget}  // optional – highlight the tile itself when it's the target
             />
           );
         }
