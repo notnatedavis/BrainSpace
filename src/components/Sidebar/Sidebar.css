@@ -60,3 +60,75 @@
   background: transparent;
   accent-color: var(--color-accent);
 }
+
+/* ---- Colour spectrum slider customisation ---- */
+.color-spectrum-slider {
+  width: 100%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent; /* actual gradient set via inline style */
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+}
+
+/* Track styles for WebKit */
+.color-spectrum-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 3px;
+  border: none;
+}
+
+/* Thumb styles for WebKit – adjusted vertical position to centre */
+.color-spectrum-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -5px;          /* centres the 16px thumb on the 6px track */
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background-color: hsl(var(--thumb-hue, 0), 80%, 50%);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.color-spectrum-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+/* Track styles for Firefox */
+.color-spectrum-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(
+    to right,
+    hsl(0, 100%, 50%),
+    hsl(60, 100%, 50%),
+    hsl(120, 100%, 50%),
+    hsl(180, 100%, 50%),
+    hsl(240, 100%, 50%),
+    hsl(300, 100%, 50%),
+    hsl(360, 100%, 50%)
+  );
+  border: none;
+}
+
+/* Thumb styles for Firefox */
+.color-spectrum-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background-color: hsl(var(--thumb-hue, 0), 80%, 50%);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+/* Profile section wrapper (aligns with slider sections) */
+.sidebar-section {
+  padding: 0 var(--space-lg);
+  margin-bottom: var(--space-md);
+}

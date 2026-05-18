@@ -34,5 +34,5 @@
 }
 
 .timer-controls button:hover {
-  background: #059669;
+  background: var(--color-accent-dark);
 }

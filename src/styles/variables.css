@@ -1,11 +1,19 @@
 /*   src/styles/variables.css */
 
 :root {
-  /* colors */
+  /* colours */
   --color-primary: #1e293b; /* dark text */
   --color-secondary: #64748b;
-  --color-accent: #10b981; /* green */
-  --color-background: #f8fafc;
+
+  /* Accent green – now controlled by a dynamic hue (default 160° → #10b981) */
+  --accent-hue: 160;
+  --color-accent: hsl(var(--accent-hue), 84%, 39%);
+  --color-accent-dark: hsl(var(--accent-hue), 84%, 28%); /* for hover states */
+
+  /* Main background – dynamic hue (default 210° → #f8fafc) */
+  --bg-hue: 210;
+  --color-background: hsl(var(--bg-hue), 40%, 97%);
+
   --color-surface: #ffffff;
   --color-text: #1e293b;
   --color-text-light: #64748b;

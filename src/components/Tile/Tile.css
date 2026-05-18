@@ -148,7 +148,7 @@
   height: 24px;
   border-radius: 50%;
   border: none;
-  background: #10b981;  /* green */
+  background: var(--color-accent);  /* dynamic accent green */
   color: white;
   font-size: 14px;
   font-weight: bold;
@@ -166,7 +166,7 @@
 }
 
 .drag-handle button:hover {
-  background: #059669;
+  background: var(--color-accent-dark); /* dynamic darker accent */
   transform: scale(0.95);
 }
 
