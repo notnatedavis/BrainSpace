@@ -31,3 +31,16 @@
 .tile-placeholder:hover {
   opacity: 0.8;
 }
+
+/* Transparent cell overlays for drop‑target highlighting */
+.grid-cell {
+  background: transparent;
+  pointer-events: none; /* events pass through to the container */
+  border-radius: var(--border-radius);
+}
+
+.grid-cell.drop-target {
+  border: 2px solid var(--color-accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  background: rgba(16, 185, 129, 0.05);
+}

@@ -9,16 +9,11 @@
   transition: all 0.3s ease;
   overflow: hidden;
   border: 1px solid var(--color-border);
-  aspect-ratio: 1 / 1;               /* square tiles */
+  aspect-ratio: 1 / 1;
   display: flex;
   flex-direction: column;
   font-size: calc(var(--font-size-base) * var(--tile-scale, 1));
   padding: calc(1.5rem * var(--tile-scale, 1));
-
-  /* limits tile width */
-  /* max-width: 280px;
-  width: 100%; 
-  margin: 0 auto; */
 }
 
 .tile:hover {
@@ -29,7 +24,7 @@
   padding-bottom: calc(0.5rem * var(--tile-scale, 1));
 }
 
-/* ------ Note tile – the note itself fills the entire tile, no inner pad / border ------ */
+/* ------ Note tile ------ */
 .tile.note-tile {
   padding: 0;
   border: none;
@@ -43,17 +38,17 @@
 }
 
 .tile.note-tile .tile-title {
-  display: none;           /* remove the "New Note" header */
+  display: none;
 }
 
 .tile.note-tile .remove-tile-btn,
 .tile.note-tile .drag-handle {
-  z-index: 20;             /* keep remove/drag above the note content */
+  z-index: 20;
 }
 
 .tile.note-tile .tile-content {
   padding: 0;
-  height: 100%;            /* allow NoteTile to stretch fully */
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -67,13 +62,13 @@
   font-weight: var(--font-weight-bold);
   border-bottom: 1px solid var(--color-border);
   padding-bottom: 0.5rem;
-  flex-shrink: 0;                    /* prevent title from shrinking */
+  flex-shrink: 0;
 }
 
 .tile-content {
-  flex: 1;                           /* take remaining space */
-  min-height: 0;                     /* allow content to scroll if needed */
-  overflow-y: auto;                  /* scroll if content overflows */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   color: var(--color-text);
   display: flex;
   flex-direction: column;
@@ -86,7 +81,7 @@
   border-radius: calc(var(--border-radius) / 2);
 }
 
-/* Remove Button – appears on hover, positioned at top-right inside the tile */
+/* Remove Button */
 .remove-tile-btn {
   position: absolute;
   top: 8px;
@@ -126,7 +121,7 @@
   transform: scale(0.9);
 }
 
-/* Drag Button */
+/* Drag Handle */
 .drag-handle {
   position: absolute;
   top: 8px;
@@ -148,7 +143,7 @@
   height: 24px;
   border-radius: 50%;
   border: none;
-  background: var(--color-accent);  /* dynamic accent green */
+  background: #10b981;
   color: white;
   font-size: 14px;
   font-weight: bold;
@@ -166,27 +161,92 @@
 }
 
 .drag-handle button:hover {
-  background: var(--color-accent-dark); /* dynamic darker accent */
+  background: #059669;
   transform: scale(0.95);
 }
 
-/* Drop target highlight – appears when a tile is the current drop target */
-.drop-target {
-  border: 2px solid var(--color-accent) !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-}
-
-/* When an image tile has a valid image, remove padding and let the image fill the tile */
+/* ------ Image‑filled & Board‑filled overrides ------ */
 .tile.image-tile-filled {
   padding: 0 !important;
 }
 
 .tile.image-tile-filled .tile-content {
   padding: 0;
-  overflow: hidden; /* ensures image doesn't overflow rounded corners */
+  overflow: hidden;
   border-radius: var(--border-radius);
 }
 
 .tile.image-tile-filled .tile-content img {
   border-radius: var(--border-radius);
+}
+
+.tile.board-tile-filled {
+  padding: 0 !important;
+}
+
+.tile.board-tile-filled .tile-content {
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--border-radius);
+}
+
+.tile.board-tile-filled .tile-content img {
+  border-radius: var(--border-radius);
+}
+
+/* ------ Resize handles – light‑green corner brackets (inside tile, not clipped) ------ */
+.resize-handle {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 15;
+  background: none;
+  pointer-events: auto;
+}
+
+.tile:hover .resize-handle {
+  opacity: 1;
+}
+
+/* Position each handle at the inner corner (0,0 etc.) and draw L‑shape with borders */
+.resize-top-left {
+  top: 0;
+  left: 0;
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid var(--color-accent);
+  border-left: 5px solid var(--color-accent);
+  cursor: nwse-resize;
+}
+
+.resize-top-right {
+  top: 0;
+  right: 0;
+  border-bottom: 5px solid transparent;
+  border-right: 5px solid var(--color-accent);
+  border-top: 5px solid var(--color-accent);
+  border-left: 5px solid transparent;
+  cursor: nesw-resize;
+}
+
+.resize-bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom: 5px solid var(--color-accent);
+  border-left: 5px solid var(--color-accent);
+  border-top: 5px solid transparent;
+  border-right: 5px solid transparent;
+  cursor: nesw-resize;
+}
+
+.resize-bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom: 5px solid var(--color-accent);
+  border-right: 5px solid var(--color-accent);
+  border-top: 5px solid transparent;
+  border-left: 5px solid transparent;
+  cursor: nwse-resize;
 }

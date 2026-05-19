@@ -12,15 +12,15 @@ const TileContainer = () => {
   const { tiles, gridSize, moveTile, removeTile } = useContext(TilesContext);
   const containerRef = useRef(null);
   const {
-    draggedIndex,
-    targetIndex,
+    draggedId,
+    targetCell,
     startDrag,
     updateDrag,
     endDrag,
   } = useDragDrop(containerRef, gridSize, moveTile);
 
   useEffect(() => {
-    if (draggedIndex !== null) {
+    if (draggedId !== null) {
       const handleMouseMove = (e) => updateDrag(e.clientX, e.clientY);
       const handleMouseUp = () => endDrag();
 
@@ -32,25 +32,44 @@ const TileContainer = () => {
         window.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [draggedIndex, updateDrag, endDrag]);
+  }, [draggedId, updateDrag, endDrag]);
 
-  const handleDragStart = useCallback((index, clientX, clientY) => {
-    startDrag(index, clientX, clientY);
+  const handleDragStart = useCallback((tileId) => {
+    startDrag(tileId);
   }, [startDrag]);
 
   // ----- Dynamic tile sizing & centering -----
-  const baseSize = 220; // starting tile size (px)
-  const scale = 1 - (gridSize - 3) * 0.1; // original scaling curve
-  const tileSize = Math.round(baseSize * scale); // dynamic tile width/height
+  const baseSize = 220;
+  const scale = 1 - (gridSize - 3) * 0.1;
+  const tileSize = Math.round(baseSize * scale);
 
   const gridStyle = {
+    display: 'grid',
     gridTemplateColumns: `repeat(${gridSize}, ${tileSize}px)`,
     gridAutoRows: `${tileSize}px`,
     gap: 'var(--space-lg)',
-    justifyContent: 'center', // centers the grid
-    overflow: 'auto', // scroll if the grid still overflows
-    '--tile-scale': scale, // keep content scaling
+    justifyContent: 'center',
+    overflow: 'auto',
+    '--tile-scale': scale,
   };
+
+  // Cell overlays for drop‑target highlighting
+  const cellOverlays = [];
+  for (let row = 0; row < gridSize; row++) {
+    for (let col = 0; col < gridSize; col++) {
+      const isTarget = targetCell && targetCell.row === row && targetCell.col === col;
+      cellOverlays.push(
+        <div
+          key={`cell-${row}-${col}`}
+          className={`grid-cell ${isTarget ? 'drop-target' : ''}`}
+          style={{
+            gridColumn: `${col + 1} / span 1`,
+            gridRow: `${row + 1} / span 1`,
+          }}
+        />
+      );
+    }
+  }
 
   return (
     <div
@@ -58,33 +77,20 @@ const TileContainer = () => {
       className="tile-container"
       style={gridStyle}
     >
-      {tiles.map((cell, index) => {
-        const isDragging = draggedIndex === index;
-        const isTarget = targetIndex === index;
-
-        if (cell === null) {
-          // empty cell – render placeholder
-          return (
-            <div
-              key={`cell-${index}`}
-              className={`tile-placeholder ${isTarget ? 'drop-target' : ''}`}
-            >
-              <span className="dot" />
-            </div>
-          );
-        } else {
-          // cell with a tile
-          return (
-            <Tile
-              key={cell.id}
-              tile={cell}
-              onRemove={removeTile}
-              onDragStart={(clientX, clientY) => handleDragStart(index, clientX, clientY)}
-              isDragging={isDragging}
-              isTarget={isTarget}  // optional – highlight the tile itself when it's the target
-            />
-          );
-        }
+      {cellOverlays}
+      {tiles.map((tile) => {
+        const isDragging = draggedId === tile.id;
+        return (
+          <Tile
+            key={tile.id}
+            tile={tile}
+            onRemove={removeTile}
+            onDragStart={() => handleDragStart(tile.id)}
+            isDragging={isDragging}
+            containerRef={containerRef}
+            gridSize={gridSize}
+          />
+        );
       })}
     </div>
   );

@@ -33,13 +33,16 @@
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
   min-width: 180px;
-  z-index: 1000;                                   /* always on top */
+  max-height: 320px;               /* scroll if too many profiles */
+  overflow-y: auto;
+  z-index: 1000;                   /* always on top */
   padding: var(--space-sm);
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
 }
 
+/* Individual profile / action items */
 .profiles-dropdown-item {
   padding: 0.5rem 0.75rem;
   background: none;
@@ -51,8 +54,44 @@
   color: var(--color-text);
   transition: background-color 0.2s;
   white-space: nowrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
 .profiles-dropdown-item:hover {
   background-color: var(--color-background);
+}
+
+/* Active profile highlight */
+.profiles-dropdown-item.active {
+  background-color: var(--color-background);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Delete button inside a profile item */
+.profile-delete-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  margin-left: 0.5rem;
+  border-radius: 50%;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.profile-delete-btn:hover {
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+/* Divider between saved profiles and actions */
+.profiles-divider {
+  margin: 0.25rem 0;
+  border: none;
+  border-top: 1px solid var(--color-border);
 }

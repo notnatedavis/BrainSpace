@@ -1,20 +1,18 @@
 //   src/components/Sidebar/Sidebar.jsx
 
 // ----- Imports -----
-import React from 'react';
+import React, { useContext } from 'react';
+import { TilesContext } from '../../context/TilesContext';
 import ColorSlider from './ColorSlider';
 import ProfilesDropdown from './ProfilesDropdown';
 import './Sidebar.css';
 
 // ----- Main -----
-const Sidebar = ({ gridSize, setGridSize, bgHue, setBgHue, accentHue, setAccentHue }) => {
-  const handleSliderChange = (e) => {
-    setGridSize(parseInt(e.target.value, 10));
-  };
+const Sidebar = () => {
+  const { gridSize, resizeGrid, bgHue, setBgHue, accentHue, setAccentHue } = useContext(TilesContext);
 
-  // Placeholder for profile copy action – will be implemented with context later
-  const handleCopyCurrent = () => {
-    // TODO: capture current state (tiles, grid size, hues) and save as profile
+  const handleGridSliderChange = (e) => {
+    resizeGrid(parseInt(e.target.value, 10));
   };
 
   return (
@@ -27,10 +25,10 @@ const Sidebar = ({ gridSize, setGridSize, bgHue, setBgHue, accentHue, setAccentH
 
       {/* ---- Profiles dropdown ---- */}
       <div className="sidebar-section">
-        <ProfilesDropdown onCopyCurrent={handleCopyCurrent} />
+        <ProfilesDropdown />
       </div>
 
-      {/* ---- Grid size slider (existing) ---- */}
+      {/* ---- Grid size slider ---- */}
       <div className="sidebar-slider">
         <label htmlFor="grid-slider">Grid: {gridSize}×{gridSize}</label>
         <input
@@ -40,11 +38,11 @@ const Sidebar = ({ gridSize, setGridSize, bgHue, setBgHue, accentHue, setAccentH
           max="6"
           step="1"
           value={gridSize}
-          onChange={handleSliderChange}
+          onChange={handleGridSliderChange}
         />
       </div>
 
-      {/* ---- Colour 1 (background) spectrum slider ---- */}
+      {/* ---- Background colour slider ---- */}
       <div className="sidebar-slider">
         <ColorSlider
           label="Background"
@@ -53,7 +51,7 @@ const Sidebar = ({ gridSize, setGridSize, bgHue, setBgHue, accentHue, setAccentH
         />
       </div>
 
-      {/* ---- Colour 2 (accent) spectrum slider ---- */}
+      {/* ---- Accent colour slider ---- */}
       <div className="sidebar-slider">
         <ColorSlider
           label="Secondary"

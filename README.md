@@ -45,64 +45,76 @@ The project is built with React (using functional components and hooks) and Vite
 
 ```bash
 BrainSpace/
-├── public/
-│   └── assets/
+├── public
+│   └── assets
 │       └── test.jpg
-├── src/
-│   ├── assets/
+├── src
+│   ├── assets
 │   │   └── test.jpg
-│   ├── components/
-│   │   ├── common/
-│   │   │   └── ErrorBoundary.jsx
-│   │   ├── Header/
+│   ├── components
+│   │   ├── common
+│   │   │   ├── ErrorBoundary.jsx
+│   │   │   ├── TileEditModal.css
+│   │   │   └── TileEditModal.jsx
+│   │   ├── Header
 │   │   │   ├── Header.css
 │   │   │   └── Header.jsx
-│   │   ├── Sidebar/
+│   │   ├── Sidebar
+│   │   │   ├── ColorSlider.css
+│   │   │   ├── ColorSlider.jsx
+│   │   │   ├── ProfilesDropdown.css
+│   │   │   ├── ProfilesDropdown.jsx
 │   │   │   ├── Sidebar.css
 │   │   │   └── Sidebar.jsx
-│   │   ├── Tile/
+│   │   ├── Tile
 │   │   │   ├── Tile.css
 │   │   │   └── Tile.jsx
-│   │   ├── TileContainer/
+│   │   ├── TileContainer
 │   │   │   ├── TileContainer.css
 │   │   │   └── TileContainer.jsx
-│   │   └── tileTypes/
-│   │       ├── ImageTile/
+│   │   └── tileTypes
+│   │       ├── ImageTile
 │   │       │   ├── ImageTile.jsx
 │   │       │   ├── ImageTileEdit.jsx
 │   │       │   └── index.js
-│   │       ├── InfoTile/
+│   │       ├── InfoTile
 │   │       │   ├── index.js
 │   │       │   ├── InfoTile.jsx
 │   │       │   └── InfoTileEdit.jsx
-│   │       ├── NoteTile/
+│   │       ├── NoteTile
 │   │       │   ├── index.js
 │   │       │   ├── NoteTile.jsx
 │   │       │   └── NoteTileEdit.jsx
+│   │       ├── TimerTile
+│   │       │   ├── index.js
+│   │       │   ├── TimerTile.css
+│   │       │   ├── TimerTile.jsx
+│   │       │   └── TimerTileEdit.jsx
 │   │       └── index.js
-│   ├── context/
+│   ├── context
 │   │   └── TilesContext.jsx
-│   ├── hooks/
+│   ├── data
+│   │   └── demoProfile.js
+│   ├── hooks
 │   │   ├── useDragDrop.js
 │   │   ├── useGridSize.js
 │   │   └── useTiles.js
-│   ├── pages/
-│   │   └── Dashboard/
+│   ├── pages
+│   │   └── Dashboard
 │   │       ├── Dashboard.css
 │   │       └── Dashboard.jsx
-│   ├── styles/
+│   ├── styles
 │   │   ├── global.css
 │   │   └── variables.css
-│   ├── utils/
+│   ├── utils
 │   │   ├── layoutHelpers.js
 │   │   └── logger.js
 │   ├── App.jsx
 │   ├── index.js
 │   └── main.jsx
-├── .gitignore
 ├── index.html
 ├── package.json
-├── ReadMe.md
+├── README.md
 └── vite.config.js
 ```
 

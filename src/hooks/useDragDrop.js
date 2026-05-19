@@ -5,15 +5,15 @@ import { useState, useCallback } from 'react';
 
 // ----- Main -----
 export const useDragDrop = (containerRef, gridSize, onMoveTile) => {
-  const [draggedIndex, setDraggedIndex] = useState(null);
-  const [targetIndex, setTargetIndex] = useState(null);
+  const [draggedId, setDraggedId] = useState(null);
+  const [targetCell, setTargetCell] = useState(null); // { row, col } | null
 
-  const startDrag = useCallback((index) => {
-    setDraggedIndex(index);
+  const startDrag = useCallback((tileId) => {
+    setDraggedId(tileId);
   }, []);
 
   const updateDrag = useCallback((clientX, clientY) => {
-    if (draggedIndex === null || !containerRef.current) return;
+    if (draggedId === null || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
     const cellWidth = rect.width / gridSize;
     const cellHeight = rect.height / gridSize;
@@ -22,24 +22,23 @@ export const useDragDrop = (containerRef, gridSize, onMoveTile) => {
     const row = Math.floor((clientY - rect.top) / cellHeight);
 
     if (col >= 0 && col < gridSize && row >= 0 && row < gridSize) {
-      const newTargetIndex = row * gridSize + col;
-      setTargetIndex(newTargetIndex);
+      setTargetCell({ row, col });
     } else {
-      setTargetIndex(null);
+      setTargetCell(null);
     }
-  }, [draggedIndex, containerRef, gridSize]);
+  }, [draggedId, containerRef, gridSize]);
 
   const endDrag = useCallback(() => {
-    if (draggedIndex !== null && targetIndex !== null && draggedIndex !== targetIndex) {
-      onMoveTile(draggedIndex, targetIndex);
+    if (draggedId !== null && targetCell !== null) {
+      onMoveTile(draggedId, targetCell.row, targetCell.col);
     }
-    setDraggedIndex(null);
-    setTargetIndex(null);
-  }, [draggedIndex, targetIndex, onMoveTile]);
+    setDraggedId(null);
+    setTargetCell(null);
+  }, [draggedId, targetCell, onMoveTile]);
 
   return {
-    draggedIndex,
-    targetIndex,
+    draggedId,
+    targetCell,
     startDrag,
     updateDrag,
     endDrag,
