@@ -45,68 +45,70 @@ The project is built with React (using functional components and hooks) and Vite
 
 ```bash
 BrainSpace/
-├── public
-│   └── assets
+├── docs/
+│   └── ToDo.md
+├── public/
+│   └── assets/
 │       └── test.jpg
-├── src
-│   ├── assets
+├── src/
+│   ├── assets/
 │   │   └── test.jpg
-│   ├── components
-│   │   ├── common
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── ColorSlider.css
+│   │   │   ├── ColorSlider.jsx
 │   │   │   ├── ErrorBoundary.jsx
 │   │   │   ├── TileEditModal.css
 │   │   │   └── TileEditModal.jsx
-│   │   ├── Header
+│   │   ├── Header/
 │   │   │   ├── Header.css
 │   │   │   └── Header.jsx
-│   │   ├── Sidebar
-│   │   │   ├── ColorSlider.css
-│   │   │   ├── ColorSlider.jsx
+│   │   ├── Sidebar/
 │   │   │   ├── ProfilesDropdown.css
 │   │   │   ├── ProfilesDropdown.jsx
 │   │   │   ├── Sidebar.css
 │   │   │   └── Sidebar.jsx
-│   │   ├── Tile
+│   │   ├── Tile/
 │   │   │   ├── Tile.css
 │   │   │   └── Tile.jsx
-│   │   ├── TileContainer
+│   │   ├── TileContainer/
 │   │   │   ├── TileContainer.css
 │   │   │   └── TileContainer.jsx
-│   │   └── tileTypes
-│   │       ├── ImageTile
+│   │   └── tileTypes/
+│   │       ├── ImageTile/
 │   │       │   ├── ImageTile.jsx
 │   │       │   ├── ImageTileEdit.jsx
 │   │       │   └── index.js
-│   │       ├── InfoTile
+│   │       ├── InfoTile/
 │   │       │   ├── index.js
 │   │       │   ├── InfoTile.jsx
 │   │       │   └── InfoTileEdit.jsx
-│   │       ├── NoteTile
+│   │       ├── NoteTile/
 │   │       │   ├── index.js
 │   │       │   ├── NoteTile.jsx
 │   │       │   └── NoteTileEdit.jsx
-│   │       ├── TimerTile
+│   │       ├── TimerTile/
 │   │       │   ├── index.js
 │   │       │   ├── TimerTile.css
 │   │       │   ├── TimerTile.jsx
 │   │       │   └── TimerTileEdit.jsx
 │   │       └── index.js
-│   ├── context
+│   ├── context/
 │   │   └── TilesContext.jsx
-│   ├── data
+│   ├── data/
 │   │   └── demoProfile.js
-│   ├── hooks
+│   ├── hooks/
 │   │   ├── useDragDrop.js
 │   │   ├── useGridSize.js
 │   │   └── useTiles.js
-│   ├── pages
-│   │   └── Dashboard
+│   ├── pages/
+│   │   └── Dashboard/
 │   │       ├── Dashboard.css
 │   │       └── Dashboard.jsx
-│   ├── styles
+│   ├── styles/
 │   │   ├── global.css
 │   │   └── variables.css
-│   ├── utils
+│   ├── utils/
 │   │   ├── layoutHelpers.js
 │   │   └── logger.js
 │   ├── App.jsx

@@ -3,7 +3,7 @@
 // ----- Imports -----
 import React, { useContext } from 'react';
 import { TilesContext } from '../../context/TilesContext';
-import ColorSlider from './ColorSlider';
+import ColorSlider from '../common/ColorSlider';            // <-- moved to common
 import ProfilesDropdown from './ProfilesDropdown';
 import './Sidebar.css';
 

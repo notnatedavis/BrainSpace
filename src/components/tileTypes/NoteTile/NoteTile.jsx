@@ -3,13 +3,76 @@
 // ----- Imports -----
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { TilesContext } from '../../../context/TilesContext';
+import ColorSlider from '../../common/ColorSlider';
+
+// ----- Helper: get current font size (in px) of the selection or cursor -----
+const getCurrentFontSize = (editorRef) => {
+  const selection = window.getSelection();
+  if (!selection.rangeCount || !editorRef.current) return 16;
+
+  const range = selection.getRangeAt(0);
+  let node = range.startContainer;
+
+  if (range.collapsed && node.nodeType === Node.TEXT_NODE) {
+    node = node.parentElement;
+  } else if (node.nodeType === Node.TEXT_NODE) {
+    node = node.parentElement;
+  }
+
+  if (node && node.nodeType === Node.ELEMENT_NODE) {
+    const fontSize = window.getComputedStyle(node).fontSize;
+    return parseFloat(fontSize) || 16;
+  }
+  return 16;
+};
+
+// ----- Helper: apply a font‑size change (delta in px) -----
+const applyFontSize = (editorRef, deltaPx) => {
+  const selection = window.getSelection();
+  if (!selection.rangeCount || !editorRef.current) return;
+
+  const editor = editorRef.current;
+  const currentSize = getCurrentFontSize(editorRef);
+  const newSize = Math.max(6, currentSize + deltaPx);
+
+  editor.focus();
+  document.execCommand('styleWithCSS', true, null);
+
+  const range = selection.getRangeAt(0);
+
+  if (range.collapsed) {
+    let node = range.startContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    if (node && node.nodeType === Node.ELEMENT_NODE && node !== editor) {
+      node.style.fontSize = newSize + 'px';
+    } else {
+      editor.style.fontSize = newSize + 'px';
+    }
+  } else {
+    const extractedContent = range.extractContents();
+    const wrapper = document.createElement('span');
+    wrapper.style.fontSize = newSize + 'px';
+    wrapper.appendChild(extractedContent);
+    range.insertNode(wrapper);
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(wrapper);
+    selection.addRange(newRange);
+  }
+};
+
+// ----- Compute background colour from hue -----
+const getBackgroundFromHue = (hue) => {
+  if (hue <= 5) return '#ffffff';
+  if (hue >= 355) return '#000000';
+  return `hsl(${hue}, 70%, 92%)`;
+};
 
 // ----- Main -----
 const NoteTile = ({ tile }) => {
   const { updateTile } = useContext(TilesContext);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Local state during editing – initialised from the current tile data
   const [editContent, setEditContent] = useState(tile.content || '');
   const [editStyle, setEditStyle] = useState(
     tile.noteStyle || {
@@ -20,39 +83,42 @@ const NoteTile = ({ tile }) => {
       fontSize: 'medium',
       fontFamily: 'sans',
       headerLevel: 0,
+      bgHue: 0,
     }
   );
 
-  // Reference to the contenteditable div for applying formatting commands
+  const [bgHue, setBgHue] = useState(tile.noteStyle?.bgHue ?? 0);
+
   const editorRef = useRef(null);
 
-  // Keep the editor’s innerHTML in sync with editContent when entering edit mode
   useEffect(() => {
     if (isEditing && editorRef.current) {
       editorRef.current.innerHTML = editContent;
     }
   }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ----- Enter / leave editing -----
   const handleTileClick = (e) => {
     e.stopPropagation();
     setIsEditing(true);
   };
 
   const handleSave = () => {
-    // Get the current HTML from the contenteditable div
     const html = editorRef.current ? editorRef.current.innerHTML : editContent;
+    const computedBgColor = getBackgroundFromHue(bgHue);
     updateTile(tile.id, {
       content: html,
-      noteStyle: editStyle,
-      title: '', // title not displayed anymore
+      noteStyle: {
+        ...editStyle,
+        bgHue,
+        backgroundColor: computedBgColor,   // persist the computed colour for display
+      },
+      title: '',
     });
     setIsEditing(false);
   };
 
   const handleCancel = () => {
     setIsEditing(false);
-    // Reset local state to the original (unchanged) tile data
     setEditContent(tile.content || '');
     setEditStyle(
       tile.noteStyle || {
@@ -63,11 +129,15 @@ const NoteTile = ({ tile }) => {
         fontSize: 'medium',
         fontFamily: 'sans',
         headerLevel: 0,
+        bgHue: 0,
       }
     );
+    setBgHue(tile.noteStyle?.bgHue ?? 0);
   };
 
-  // ----- Text formatting helpers (only operate on the contenteditable div) -----
+  const currentBackground = getBackgroundFromHue(bgHue);
+
+  // ----- Text formatting helpers -----
   const applyBold = () => {
     if (editorRef.current) {
       editorRef.current.focus();
@@ -89,13 +159,14 @@ const NoteTile = ({ tile }) => {
     }
   };
 
-  // ----- Color circle prototype: red, green, blue -----
-  const colorOptions = ['#ff0000', '#00ff00', '#0000ff'];
-  const currentColor = editStyle.backgroundColor || '#ffffff';
-
   // ----- Display mode -----
   if (!isEditing) {
-    const { backgroundColor = '#ffffff', bold = false, italic = false, underline = false, fontSize = 'medium', fontFamily = 'sans', headerLevel = 0 } = tile.noteStyle || {};
+    // Determine background: prefer bgHue if present, else fallback to backgroundColor
+    const style = tile.noteStyle || {};
+    const bgHueVal = style.bgHue;
+    const background = bgHueVal !== undefined ? getBackgroundFromHue(bgHueVal) : (style.backgroundColor || '#ffffff');
+
+    const { bold = false, italic = false, underline = false, fontSize = 'medium', fontFamily = 'sans', headerLevel = 0 } = style;
     const textStyles = {
       fontWeight: bold ? 'bold' : 'normal',
       fontStyle: italic ? 'italic' : 'normal',
@@ -118,7 +189,7 @@ const NoteTile = ({ tile }) => {
       <div
         className="note-tile-display"
         style={{
-          backgroundColor,
+          backgroundColor: background,
           width: '100%',
           height: '100%',
           display: 'flex',
@@ -132,7 +203,6 @@ const NoteTile = ({ tile }) => {
         onClick={handleTileClick}
       >
         <HeaderTag style={textStyles}>
-          {/* Render saved HTML safely (content may be plain text or HTML) */}
           <span dangerouslySetInnerHTML={{ __html: tile.content || 'note pad' }} />
         </HeaderTag>
       </div>
@@ -148,82 +218,29 @@ const NoteTile = ({ tile }) => {
         flexDirection: 'column',
         height: '100%',
         width: '100%',
-        padding: '2.5rem 0.5rem 0.5rem 0.5rem',   /* top right bottom left */
-        backgroundColor: editStyle.backgroundColor,
+        padding: '2.5rem 0.5rem 0.5rem 0.5rem',
+        backgroundColor: currentBackground,
         boxSizing: 'border-box',
         borderRadius: 'var(--border-radius)',
         overflow: 'hidden',
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* ---------- Toolbar row 1: bold / italic / underline ---------- */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-        <button
-          type="button"
-          onClick={applyBold}
-          style={{
-            fontWeight: 'bold',
-            padding: '0.2rem 0.6rem',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            background: 'transparent',
-            cursor: 'pointer',
-          }}
-        >
-          B
-        </button>
-        <button
-          type="button"
-          onClick={applyItalic}
-          style={{
-            fontStyle: 'italic',
-            padding: '0.2rem 0.6rem',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            background: 'transparent',
-            cursor: 'pointer',
-          }}
-        >
-          I
-        </button>
-        <button
-          type="button"
-          onClick={applyUnderline}
-          style={{
-            textDecoration: 'underline',
-            padding: '0.2rem 0.6rem',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            background: 'transparent',
-            cursor: 'pointer',
-          }}
-        >
-          U
-        </button>
+      {/* ---------- Toolbar row 1: bold / italic / underline / font +/- ---------- */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
+        <button type="button" onClick={applyBold} style={{ fontWeight: 'bold', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>B</button>
+        <button type="button" onClick={applyItalic} style={{ fontStyle: 'italic', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>I</button>
+        <button type="button" onClick={applyUnderline} style={{ textDecoration: 'underline', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>U</button>
+        <button type="button" onClick={() => applyFontSize(editorRef, -1)} title="Decrease font size by 1 px" style={{ padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>−</button>
+        <button type="button" onClick={() => applyFontSize(editorRef, 1)} title="Increase font size by 1 px" style={{ padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
       </div>
 
-      {/* ---------- Toolbar row 2: color circles ---------- */}
-      <div style={{ display: 'flex', gap: '0.375rem', marginBottom: '0.5rem' }}>
-        {colorOptions.map((color) => (
-          <button
-            key={color}
-            type="button"
-            onClick={() => setEditStyle((prev) => ({ ...prev, backgroundColor: color }))}
-            style={{
-              width: '18px',
-              height: '18px',
-              borderRadius: '50%',
-              backgroundColor: color,
-              border: currentColor === color ? '2px solid #333' : '2px solid transparent',
-              cursor: 'pointer',
-              padding: 0,
-            }}
-            title={`Set background to ${color}`}
-          />
-        ))}
+      {/* ---------- Background colour slider ---------- */}
+      <div style={{ marginBottom: '0.5rem' }}>
+        <ColorSlider label="Background" hue={bgHue} setHue={setBgHue} />
       </div>
 
-      {/* ---------- Editable area (contenteditable div) ---------- */}
+      {/* ---------- Editable area ---------- */}
       <div
         ref={editorRef}
         contentEditable
@@ -240,7 +257,6 @@ const NoteTile = ({ tile }) => {
           overflowY: 'auto',
           minHeight: 0,
         }}
-        // Placeholder text when empty
         onFocus={(e) => {
           if (e.currentTarget.textContent.trim() === '') {
             e.currentTarget.setAttribute('data-placeholder', 'Write your note…');
@@ -255,34 +271,8 @@ const NoteTile = ({ tile }) => {
 
       {/* ---------- Save / Cancel actions ---------- */}
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.5rem' }}>
-        <button
-          type="button"
-          onClick={handleCancel}
-          style={{
-            padding: '0.3rem 0.8rem',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            background: 'transparent',
-            cursor: 'pointer',
-          }}
-        >
-          Cancel
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
-          style={{
-            padding: '0.3rem 0.8rem',
-            border: 'none',
-            borderRadius: '4px',
-            background: 'var(--color-accent)',
-            color: 'white',
-            cursor: 'pointer',
-            fontWeight: 500,
-          }}
-        >
-          Save
-        </button>
+        <button type="button" onClick={handleCancel} style={{ padding: '0.3rem 0.8rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>Cancel</button>
+        <button type="button" onClick={handleSave} style={{ padding: '0.3rem 0.8rem', border: 'none', borderRadius: '4px', background: 'var(--color-accent)', color: 'white', cursor: 'pointer', fontWeight: 500 }}>Save</button>
       </div>
     </div>
   );

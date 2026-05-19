@@ -84,7 +84,7 @@
 /* Remove Button */
 .remove-tile-btn {
   position: absolute;
-  top: 8px;
+  top: 2px;      /* moved up from 8px → gives more content space */
   left: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -124,7 +124,7 @@
 /* Drag Handle */
 .drag-handle {
   position: absolute;
-  top: 8px;
+  top: 2px;      /* moved up from 8px */
   right: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;

@@ -43,14 +43,18 @@ const TileContainer = () => {
   const scale = 1 - (gridSize - 3) * 0.1;
   const tileSize = Math.round(baseSize * scale);
 
+  // ----- Visual border outline dependent on grid size -----
+  const outlineWidth = `${Math.max(1, (gridSize - 2) * 2)}px`;
+
   const gridStyle = {
-    display: 'grid',
+    display: 'inline-grid',          // allows container to shrink‑wrap
     gridTemplateColumns: `repeat(${gridSize}, ${tileSize}px)`,
     gridAutoRows: `${tileSize}px`,
     gap: 'var(--space-lg)',
     justifyContent: 'center',
     overflow: 'auto',
     '--tile-scale': scale,
+    '--grid-outline-width': outlineWidth,   // still available for any child that may need it
   };
 
   // Cell overlays for drop‑target highlighting
