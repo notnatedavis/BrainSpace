@@ -3,7 +3,7 @@
 // ----- Imports -----
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import tileTypes from '../components/tileTypes';
-import demoProfile from '../data/demoProfile';
+// Removed: import demoProfile from '../data/demoProfile';  (no longer exists)
 export const TilesContext = createContext();
 
 const INITIAL_GRID_SIZE = 3;
@@ -249,9 +249,7 @@ export const TilesProvider = ({ children }) => {
     }
   }, [activeProfileId]);
 
-  const loadDemoProfile = useCallback(() => {
-    loadProfile(demoProfile);
-  }, [loadProfile]);
+  // Removed loadDemoProfile – demo profiles are now imported directly in ProfilesDropdown.
 
   const exportProfile = useCallback(() => {
     const snapshot = createSnapshot();
@@ -331,7 +329,6 @@ export default profile;
     copyCurrentProfile,
     loadProfile,
     deleteProfile,
-    loadDemoProfile,
     exportProfile,
     importProfileFromFile,
   };

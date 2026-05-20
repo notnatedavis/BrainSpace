@@ -4,6 +4,10 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { TilesContext } from '../../context/TilesContext';
+// Import the three new demo profiles
+import DemoProfile1 from '../../data/DemoProfile1';
+import DemoProfile2 from '../../data/DemoProfile2';
+import DemoProfile3 from '../../data/DemoProfile3';
 import './ProfilesDropdown.css';
 
 // ----- Main -----
@@ -14,7 +18,6 @@ const ProfilesDropdown = () => {
     copyCurrentProfile,
     loadProfile,
     deleteProfile,
-    loadDemoProfile,
     exportProfile,
     importProfileFromFile,
   } = useContext(TilesContext);
@@ -69,7 +72,7 @@ const ProfilesDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // ---- Action handlers that also close the dropdown (adapted) ----
+  // ---- Action handlers that also close the dropdown ----
   const handleCopy = () => {
     copyCurrentProfile();
     setIsOpen(false);
@@ -85,8 +88,19 @@ const ProfilesDropdown = () => {
     deleteProfile(id);
   };
 
-  const handleLoadDemo = () => {
-    loadDemoProfile();
+  // Handlers for the three demo profiles
+  const handleLoadDemo1 = () => {
+    loadProfile(DemoProfile1);
+    setIsOpen(false);
+  };
+
+  const handleLoadDemo2 = () => {
+    loadProfile(DemoProfile2);
+    setIsOpen(false);
+  };
+
+  const handleLoadDemo3 = () => {
+    loadProfile(DemoProfile3);
     setIsOpen(false);
   };
 
@@ -113,7 +127,7 @@ const ProfilesDropdown = () => {
           left: `${menuPos.left}px`,
         }}
       >
-        {/* ---- User‑saved profiles (unchanged) ---- */}
+        {/* ---- User‑saved profiles ---- */}
         {profiles.length > 0 && (
           <>
             {profiles.map((profile) => (
@@ -140,16 +154,7 @@ const ProfilesDropdown = () => {
           </>
         )}
 
-        {/* ---- Copy current action ---- */}
-        <button
-          className="profiles-dropdown-item"
-          onClick={handleCopy}
-          role="menuitem"
-        >
-          + Copy current
-        </button>
-
-        {/* ---- Export current as .js file ---- */}
+        {/* ---- Export / Import actions ---- */}
         <button
           className="profiles-dropdown-item"
           onClick={handleExport}
@@ -158,7 +163,6 @@ const ProfilesDropdown = () => {
           📥 Export current as file
         </button>
 
-        {/* ---- Import profile from .js file ---- */}
         <button
           className="profiles-dropdown-item"
           onClick={handleImport}
@@ -167,13 +171,27 @@ const ProfilesDropdown = () => {
           📤 Import profile from file
         </button>
 
-        {/* ---- Load demo action ---- */}
+        {/* ---- Demo Profiles ---- */}
         <button
-          className={`profiles-dropdown-item ${activeProfileId === 'demo' ? 'active' : ''}`}
-          onClick={handleLoadDemo}
+          className="profiles-dropdown-item"
+          onClick={handleLoadDemo1}
           role="menuitem"
         >
-          Load Demo
+          DemoProfile1
+        </button>
+        <button
+          className="profiles-dropdown-item"
+          onClick={handleLoadDemo2}
+          role="menuitem"
+        >
+          DemoProfile2
+        </button>
+        <button
+          className="profiles-dropdown-item"
+          onClick={handleLoadDemo3}
+          role="menuitem"
+        >
+          DemoProfile3
         </button>
       </div>,
       portalContainerRef.current
