@@ -73,6 +73,7 @@ const NoteTile = ({ tile }) => {
   const { updateTile } = useContext(TilesContext);
   const [isEditing, setIsEditing] = useState(false);
 
+  // Local editing state – initialised from current tile props
   const [editContent, setEditContent] = useState(tile.content || '');
   const [editStyle, setEditStyle] = useState(
     tile.noteStyle || {
@@ -91,11 +92,22 @@ const NoteTile = ({ tile }) => {
 
   const editorRef = useRef(null);
 
+  // ----- Synchronise editing state with the latest tile props when entering edit mode -----
+  useEffect(() => {
+    if (isEditing) {
+      // On entering edit mode, reset the local state so it always matches
+      // the current tile data (fixes bug where stale content was shown).
+      setEditContent(tile.content || '');
+      setBgHue(tile.noteStyle?.bgHue ?? 0);
+    }
+  }, [isEditing, tile.content, tile.noteStyle?.bgHue]);
+
+  // ----- Populate the contentEditable div when editing starts or content changes -----
   useEffect(() => {
     if (isEditing && editorRef.current) {
       editorRef.current.innerHTML = editContent;
     }
-  }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isEditing, editContent]);
 
   const handleTileClick = (e) => {
     e.stopPropagation();

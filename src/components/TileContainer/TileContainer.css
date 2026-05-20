@@ -1,19 +1,19 @@
 /*   src/components/TileContainer/TileContainer.css */
 
 .tile-container {
-  display: inline-grid;          /* shrink‑wrap to content – prevents size changes on sidebar hover */
+  position: relative;           /* ★ required so the absolute indicator is positioned correctly */
+  display: inline-grid;         /* shrink‑wrap to content */
   gap: var(--space-lg);
   align-items: start;
   min-height: 300px;
   background: transparent;
   border-radius: var(--border-radius);
-  margin: 0 auto;               /* center inside flex parent */
-  /* Larger outer outline with space between border and outline */
+  margin: 0 auto;
   outline: 5px solid var(--color-accent);
   outline-offset: 15px;
 }
 
-/* Placeholder styling */
+/* Placeholder styling (unchanged) */
 .tile-placeholder {
   aspect-ratio: 1 / 1;
   background: transparent;
@@ -36,17 +36,4 @@
 
 .tile-placeholder:hover {
   opacity: 0.8;
-}
-
-/* Transparent cell overlays for drop‑target highlighting */
-.grid-cell {
-  background: transparent;
-  pointer-events: none;
-  border-radius: var(--border-radius);
-}
-
-.grid-cell.drop-target {
-  border: 2px solid var(--color-accent);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
-  background: rgba(16, 185, 129, 0.05);
 }
