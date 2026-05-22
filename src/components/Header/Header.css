@@ -44,27 +44,25 @@
 /* dropdown menu – expands to the left */
 .dropdown-menu {
   position: absolute;
-  right: 100%;          /* Place the dropdown to the left of the button */
-  top: 0;               /* Align with the top of the button */
-  margin-right: 0.75rem; /* Add some spacing between dropdown and button */
+  right: 100%;
+  top: 0;
+  margin-right: 0.75rem;
   
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
   display: flex;
-  flex-direction: row;   /* horizontal layout */
-  gap: 0.25rem;          /* space between items */
+  flex-direction: row;
+  gap: 0.25rem;
   padding: 0.5rem;
   z-index: 100;
-  white-space: nowrap;   /* prevent text wrapping */
+  white-space: nowrap;
 }
 
 .dropdown-menu {
-  /*max-width: calc(100vw - 2rem); /* Prevent going off-screen *
-  overflow-x: auto; */
   right: 5.5rem;
-  left: auto;        /* ensures it doesn't stretch to left edge */
+  left: auto;
 }
 
 .dropdown-item {

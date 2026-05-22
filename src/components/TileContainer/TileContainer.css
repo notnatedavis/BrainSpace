@@ -1,8 +1,8 @@
 /*   src/components/TileContainer/TileContainer.css */
 
 .tile-container {
-  position: relative;           /* ★ required so the absolute indicator is positioned correctly */
-  display: inline-grid;         /* shrink‑wrap to content */
+  position: relative; /* ★ required so the absolute indicator is positioned correctly */
+  display: inline-grid; /* shrink‑wrap to content */
   gap: var(--space-lg);
   align-items: start;
   min-height: 300px;

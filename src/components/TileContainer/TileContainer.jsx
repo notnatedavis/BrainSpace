@@ -1,15 +1,16 @@
 //   src/components/TileContainer/TileContainer.jsx
 
-// ----- Imports ----- 
+// ----- Imports -----
 import React, { useRef, useEffect, useCallback, useContext } from 'react';
 import Tile from '../Tile/Tile';
 import { useDragDrop } from '../../hooks/useDragDrop';
 import { TilesContext } from '../../context/TilesContext';
+import { getGradientColor } from '../../utils/colorUtils';
 import './TileContainer.css';
 
-// ----- Main ----- 
+// ----- Main -----
 const TileContainer = () => {
-  const { tiles, gridSize, moveTile, removeTile, accentHue } = useContext(TilesContext); // ★ accentHue added
+  const { tiles, gridSize, moveTile, removeTile, accentHue } = useContext(TilesContext);
   const containerRef = useRef(null);
   const {
     draggedId,
@@ -48,12 +49,12 @@ const TileContainer = () => {
   const outlineWidth = `${Math.max(1, (gridSize - 2) * 2)}px`;
 
   const gridStyle = {
-    display: 'inline-grid',          // allows container to shrink‑wrap
+    display: 'inline-grid',
     gridTemplateColumns: `repeat(${gridSize}, ${tileSize}px)`,
-    gridTemplateRows: `repeat(${gridSize}, ${tileSize}px)`,  // explicit rows → full height outline
+    gridTemplateRows: `repeat(${gridSize}, ${tileSize}px)`,
     gap: 'var(--space-lg)',
     justifyContent: 'center',
-    overflow: 'visible',             // allow the absolute overlay to be painted without clipping
+    overflow: 'visible',
     '--tile-scale': scale,
     '--grid-outline-width': outlineWidth,
   };
@@ -65,9 +66,9 @@ const TileContainer = () => {
     const top = targetCell.row * (tileSize + gap);
 
     // Build dynamic accent colours from the Secondary slider value
-    const accentColor = `hsl(${accentHue}, 84%, 39%)`;
-    const accentShadow = `0 0 0 2px hsla(${accentHue}, 84%, 39%, 0.2)`;
-    const accentBg = `hsla(${accentHue}, 84%, 39%, 0.05)`;
+    const accentColor = getGradientColor(accentHue);
+    const accentShadow = `0 0 0 2px ${accentColor}33`; // 20% opacity
+    const accentBg = `${accentColor}0D`;               // ~5% opacity
 
     targetIndicatorStyle = {
       position: 'absolute',

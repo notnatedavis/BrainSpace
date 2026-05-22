@@ -9,7 +9,7 @@ import { TilesContext } from '../../../context/TilesContext';
 const BoardTileEdit = ({ tile, onSave }) => {
   const { updateTile } = useContext(TilesContext);
 
-  // Form fields
+  // form fields
   const [boardUrl, setBoardUrl] = useState(tile.boardUrl || '');
   const [autoRefreshInterval, setAutoRefreshInterval] = useState(tile.autoRefreshInterval || 0);
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ const BoardTileEdit = ({ tile, onSave }) => {
       const { title: boardTitle, pinImages } = await fetchBoardData(boardUrl);
       const randomImage = getRandomPinImage(pinImages);
 
-      // Update the tile in context (keeps modal open, updates preview)
+      // update the tile in context (keeps modal open, updates preview)
       updateTile(tile.id, {
         boardUrl: boardUrl.trim(),
         boardTitle,
@@ -44,7 +44,7 @@ const BoardTileEdit = ({ tile, onSave }) => {
     }
   };
 
-  // Helper Function :
+  // helper Function :
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!boardUrl.trim()) {
@@ -56,11 +56,11 @@ const BoardTileEdit = ({ tile, onSave }) => {
     setError('');
 
     try {
-      // Fetch board data from Pinterest via proxy
+      // fetch board data from Pinterest via proxy
       const { title: boardTitle, pinImages } = await fetchBoardData(boardUrl);
       const randomImage = getRandomPinImage(pinImages);
 
-      // Save tile data: title (board title), boardUrl, pinImageUrl, boardTitle
+      // save tile data: title (board title), boardUrl, pinImageUrl, boardTitle
       onSave({
         title: boardTitle,
         boardUrl: boardUrl.trim(),

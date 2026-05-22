@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 
 // ----- Main -----
 const ImageTileEdit = ({ tile, onSave }) => {
-  // Form fields – initialise from existing tile data
+
+  // form fields – initialise from existing tile data
   const [src, setSrc] = useState(tile.content || '');
   const [alt, setAlt] = useState(tile.alt || '');
   const [title, setTitle] = useState(tile.title || '');
@@ -16,7 +17,7 @@ const ImageTileEdit = ({ tile, onSave }) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Basic validation – file type should be an image
+    // basic validation – file type should be an image
     if (!file.type.startsWith('image/')) {
       setError('Selected file is not an image.');
       return;
@@ -40,7 +41,7 @@ const ImageTileEdit = ({ tile, onSave }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Trim whitespace but allow empty values (the tile component will handle them)
+    // trim whitespace but allow empty values (tile component handles them)
     const trimmedSrc = src.trim();
     const trimmedAlt = alt.trim();
     const trimmedTitle = title.trim();
@@ -52,7 +53,7 @@ const ImageTileEdit = ({ tile, onSave }) => {
     });
   };
 
-  // ----- Inline style definitions (uses global variables where applicable) -----
+  // ----- inline style definitions (uses global variables where applicable) -----
   const formStyle = {
     display: 'flex',
     flexDirection: 'column',

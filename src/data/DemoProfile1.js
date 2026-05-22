@@ -73,7 +73,7 @@ const profile = {
     }
   ],
   "gridSize": 4,
-  "bgHue": 78,
-  "accentHue": 178
+  "bgHue": 360,        /* white background */
+  "accentHue": 0   /* vibrant green accent */
 };
 export default profile;

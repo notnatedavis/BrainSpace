@@ -12,13 +12,13 @@ const BoardTile = ({ tile }) => {
   const { pinImageUrl, boardUrl, boardTitle, title, autoRefreshInterval } = tile;
 
   useEffect(() => {
-    // Clear any existing interval when props change
+    // clear any existing interval when props change
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
 
-    // Only set up interval if URL is present and interval > 0
+    // only set up interval if URL is present and interval > 0
     if (boardUrl && autoRefreshInterval > 0) {
       intervalRef.current = setInterval(async () => {
         try {
@@ -27,16 +27,16 @@ const BoardTile = ({ tile }) => {
           updateTile(tile.id, {
             pinImageUrl: randomImage,
             lastUpdated: Date.now(),
-            // Keep everything else the same
+            // keep everything else the same
           });
         } catch (err) {
           console.warn('BoardTile auto‑refresh failed:', err);
-          // Silently fail – we don't want to break the tile
+          // silently fail – we don't want to break the tile
         }
       }, autoRefreshInterval * 1000);
     }
 
-    // Cleanup on unmount or when dependencies change
+    // cleanup on unmount or when dependencies change
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -44,7 +44,7 @@ const BoardTile = ({ tile }) => {
     };
   }, [boardUrl, autoRefreshInterval, tile.id, updateTile]);
   
-  // If no image URL, show a placeholder
+  // if no image URL, show a placeholder
   if (!pinImageUrl) {
     return (
       <div
@@ -65,7 +65,7 @@ const BoardTile = ({ tile }) => {
     );
   }
 
-  // Image fills the tile – no title bar, object-fit cover
+  // image fills the tile – no title bar, object-fit cover
   return (
     <img
       src={pinImageUrl}

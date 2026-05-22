@@ -45,10 +45,10 @@ const TimerTileEdit = ({ tile, onSave }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Always include title and mode
+    // always include title and mode
     const updateData = { title: title.trim(), mode };
 
-    // Only parse and include initialTime for countdown mode
+    // only parse and include initialTime for countdown mode
     if (mode === 'countdown') {
       const totalSeconds = parseTimeInput(timeString);
       if (totalSeconds === null) {

@@ -84,8 +84,8 @@ export const TilesProvider = ({ children }) => {
   });
 
   const [editingTileId, setEditingTileId] = useState(null);
-  const [bgHue, setBgHue] = useState(210);
-  const [accentHue, setAccentHue] = useState(160);
+  const [bgHue, setBgHue] = useState(0);
+  const [accentHue, setAccentHue] = useState(105);
 
   // LocalStorage‑based profiles
   const [profiles, setProfiles] = useState(loadProfilesFromStorage);
@@ -129,7 +129,7 @@ export const TilesProvider = ({ children }) => {
     setTiles(prev => prev.filter(tile => tile.id !== id));
   }, []);
 
-  // Move a tile to (targetRow, targetCol). If target cell is occupied by another 1×1 tile, swap them.
+  // Move a tile to (targetRow, targetCol). If target cell is occupied by another 1×1 tile, swap them
   const moveTile = useCallback((id, targetRow, targetCol) => {
     setTiles(prev => {
       const draggedTile = prev.find(t => t.id === id);
@@ -172,12 +172,12 @@ export const TilesProvider = ({ children }) => {
       if (!tile) return prev;
       const size = newSize || 1;
 
-      // Out of grid bounds
+      // out of grid bounds
       if (newRow < 0 || newCol < 0 || newRow + size > gridSize || newCol + size > gridSize) {
         return prev;
       }
 
-      // Check that the target area is free (excluding the tile itself)
+      // check that the target area is free (excluding the tile itself)
       if (!isAreaFree(prev, newRow, newCol, size, id)) return prev;
 
       return prev.map(t =>
@@ -196,7 +196,7 @@ export const TilesProvider = ({ children }) => {
     );
   }, []);
 
-  // Grid resizing – filters tiles that would be out of bounds
+  // grid resizing – filters tiles would be out of bounds
   const resizeGrid = useCallback((newSize) => {
     setGridSize(newSize);
     setTiles(prev => prev.filter(tile => {
@@ -249,7 +249,7 @@ export const TilesProvider = ({ children }) => {
     }
   }, [activeProfileId]);
 
-  // Removed loadDemoProfile – demo profiles are now imported directly in ProfilesDropdown.
+  // Demo profiles are imported directly in ProfilesDropdown
 
   const exportProfile = useCallback(() => {
     const snapshot = createSnapshot();

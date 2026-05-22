@@ -6,7 +6,7 @@ import tileTypes from '../tileTypes';
 import { TilesContext } from '../../context/TilesContext';
 import './Tile.css';
 
-// ----- Shrink margin: how many cells must the mouse travel inward before the tile snaps to a smaller size -----
+// ----- Shrink margin : how many cells must the mouse travel inward before the tile snaps to a smaller size -----
 // Increase to make shrinking feel snappier (0.3 – 1.0 is practical; 0.0 = immediate, 1.0 = default full‑cell movement)
 const SHRINK_MARGIN = 0.2; // cell units
 
@@ -59,7 +59,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
       const cellWidth = rect.width / gridSize;
       const cellHeight = rect.height / gridSize;
 
-      // Continuous floating‑point cell coordinate of the mouse
+      // continuous floating‑point cell coordinate of the mouse
       const mouseColFloat = (e.clientX - rect.left) / cellWidth;
       const mouseRowFloat = (e.clientY - rect.top) / cellHeight;
 
@@ -68,11 +68,13 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
           newCol = col,
           newSize = initialSize;
 
-      // Compute spans from anchor to the mouse (floats) for each corner
+      // compute spans from anchor to the mouse (floats) for each corner
       const computeSize = (rowSpan, colSpan) => {
-        // Initial raw size (ceiling to integer cells) – used for expansion
+        
+        // initial raw size (ceiling to integer cells) – used for expansion
         const rawSize = Math.ceil(Math.max(rowSpan, colSpan));
-        // Clamp to valid range
+
+        // clamp to valid range
         const clampedSize = Math.min(gridSize - newRow, gridSize - newCol, Math.max(1, rawSize));
 
         // Shrink helper: if the raw ceil still equals the current size, but the
@@ -122,7 +124,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
           break;
       }
 
-      // Final sanity clamp to grid bounds
+      // final sanity clamp to grid bounds
       newRow = Math.max(0, Math.min(newRow, gridSize - newSize));
       newCol = Math.max(0, Math.min(newCol, gridSize - newSize));
 

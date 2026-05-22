@@ -14,14 +14,14 @@ const TileEditModal = () => {
 
   const tile = tiles.find(t => t && t.id === editingTileId);
   if (!tile) {
-    // If tile not found, close modal
+    // if tile not found, close modal
     setEditingTileId(null);
     return null;
   }
 
   const typeDef = tileTypes[tile.type];
   if (!typeDef || !typeDef.editComponent) {
-    // No edit component defined – close modal
+    // no edit component defined – close modal
     setEditingTileId(null);
     return null;
   }
@@ -37,7 +37,7 @@ const TileEditModal = () => {
     setEditingTileId(null);
   };
 
-  // Stop click propagation on modal content so clicking inside doesn't close
+  // stop click propagation on modal content so clicking inside doesn't close
   const handleModalContentClick = (e) => {
     e.stopPropagation();
   };

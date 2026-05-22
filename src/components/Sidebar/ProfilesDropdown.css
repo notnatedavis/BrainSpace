@@ -5,12 +5,12 @@
   width: 100%;
 }
 
-/* Trigger button – soft outline, looks like a selectable control */
+/* Trigger button - selectable control */
 .profiles-btn {
   width: 100%;
   padding: var(--space-sm) var(--space-lg);
   background: none;
-  border: 1px solid var(--color-border);       /* soft outline */
+  border: 1px solid var(--color-border); /* soft outline */
   border-radius: 4px;
   text-align: left;
   color: var(--color-text);
@@ -23,19 +23,19 @@
 
 .profiles-btn:hover {
   background-color: var(--color-background);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);   /* subtle glow */
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); /* subtle glow */
 }
 
-/* Dropdown menu – positioned via inline style (below the trigger) */
+/* Dropdown menu – positioned via inline style (below trigger) */
 .profiles-dropdown-menu {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
   min-width: 180px;
-  max-height: 320px;               /* scroll if too many profiles */
+  max-height: 320px; /* scroll if too many profiles */
   overflow-y: auto;
-  z-index: 1000;                   /* always on top */
+  z-index: 1000; /* always on top */
   padding: var(--space-sm);
   display: flex;
   flex-direction: column;

@@ -28,7 +28,7 @@ const NoteTileEdit = ({ tile, onSave }) => {
     onSave({ title, content, noteStyle });
   };
 
-  // Inline styles for consistent form elements
+  // inline styles for consistent form elements
   const formGroupStyle = {
     display: 'flex',
     flexDirection: 'column',

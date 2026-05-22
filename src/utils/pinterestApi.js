@@ -7,7 +7,7 @@
 import { logger } from './logger';
 
 // ----- Simple in‑memory cache for the RSS data -----
-// Cache entries expire after 2 minutes (120000 ms)
+// cache entries expire after 2 minutes (120000 ms)
 const cache = new Map();
 const CACHE_TTL = 120000; // 2 min
 
@@ -26,10 +26,10 @@ const setCache = (key, data) => {
 };
 
 // ----- Backoff helper for retrying after failures -----
-// Stores the next attempt time per board URL (by normalized key)
+// stores the next attempt time per board URL (by normalized key)
 const retryTimers = new Map();
-const BACKOFF_BASE = 5000;   // 5 seconds
-const BACKOFF_MAX = 60000;   // 1 minute
+const BACKOFF_BASE = 5000; // 5 seconds
+const BACKOFF_MAX = 60000; // 1 minute
 
 const shouldRetry = (key) => {
   const next = retryTimers.get(key) || 0;
@@ -107,9 +107,9 @@ export const fetchBoardData = async (boardUrl) => {
     return cached;
   }
 
-  // 2) Respect backoff – if we recently failed, reuse expired cache or throw softly
+  // 2) respect backoff – if recently failed, reuse expired cache or throw softly
   if (!shouldRetry(cacheKey)) {
-    // If we have expired cache, serve it as a fallback
+    // if have expired cache , serve it as a fallback
     if (cached) {
       logger.debug(`Backoff active for "${cacheKey}", serving stale cache`);
       return cached;
@@ -118,7 +118,7 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error('Too many requests – cooling down');
   }
 
-  // 3) Build RSS feed URL and fetch with a short timeout
+  // 3) build RSS feed URL and fetch with a short timeout
   const rssUrl = `/pinterest-rss/${username}/${boardName}.rss`;
   logger.debug(`Fetching RSS feed from: ${rssUrl}`);
 
@@ -139,7 +139,7 @@ export const fetchBoardData = async (boardUrl) => {
   } catch (err) {
     logger.error('Failed to fetch RSS feed:', err);
     recordFailure(cacheKey);
-    // If we have stale cache, use it even on fetch error
+    // if we have stale cache, use it even on fetch error
     if (cached) {
       logger.debug('Serving stale cache after fetch error');
       return cached;
@@ -147,7 +147,7 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error(`Unable to load board RSS feed: ${err.message}`);
   }
 
-  // 4) Parse XML (same as before)
+  // 4) parse XML
   let doc;
   try {
     doc = parseXML(xmlText);
@@ -192,7 +192,7 @@ export const fetchBoardData = async (boardUrl) => {
 
   const result = { title: boardTitle, pinImages };
 
-  // 5) Cache the successful response and reset backoff
+  // 5) cache successful response + reset backoff
   setCache(cacheKey, result);
   resetBackoff(cacheKey);
 

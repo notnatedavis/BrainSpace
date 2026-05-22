@@ -7,19 +7,20 @@ import Sidebar from '../../components/Sidebar/Sidebar';
 import TileContainer from '../../components/TileContainer/TileContainer';
 import TileEditModal from '../../components/common/TileEditModal';
 import { TilesContext } from '../../context/TilesContext';
+import { getGradientColor } from '../../utils/colorUtils';
 import './Dashboard.css';
 
 // ----- Main -----
 const Dashboard = () => {
   const { bgHue, accentHue } = useContext(TilesContext);
 
-  // Apply the dynamic hues to CSS variables on the document root
+  // apply the dynamic hues to CSS variables on the document root
   useEffect(() => {
-    document.documentElement.style.setProperty('--bg-hue', bgHue);
+    document.documentElement.style.setProperty('--color-background', getGradientColor(bgHue));
   }, [bgHue]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--accent-hue', accentHue);
+    document.documentElement.style.setProperty('--color-accent', getGradientColor(accentHue));
   }, [accentHue]);
 
   return (

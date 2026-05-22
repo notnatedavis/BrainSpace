@@ -88,7 +88,7 @@ const ProfilesDropdown = () => {
     deleteProfile(id);
   };
 
-  // Handlers for the three demo profiles
+  // ------ Handlers for the Three Demo Profiles ------
   const handleLoadDemo1 = () => {
     loadProfile(DemoProfile1);
     setIsOpen(false);
@@ -177,21 +177,21 @@ const ProfilesDropdown = () => {
           onClick={handleLoadDemo1}
           role="menuitem"
         >
-          DemoProfile1
+          Demo Profile 1
         </button>
         <button
           className="profiles-dropdown-item"
           onClick={handleLoadDemo2}
           role="menuitem"
         >
-          DemoProfile2
+          Demo Profile 2
         </button>
         <button
           className="profiles-dropdown-item"
           onClick={handleLoadDemo3}
           role="menuitem"
         >
-          DemoProfile3
+          Demo Profile 3
         </button>
       </div>,
       portalContainerRef.current

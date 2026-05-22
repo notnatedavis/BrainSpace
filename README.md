@@ -30,8 +30,6 @@ The project is built with React (using functional components and hooks) and Vite
 
 - Theming via CSS Variables – colors, spacing, typography, and shadows are defined in variables.css for easy global styling
 
-- Logger Utility – conditionally logs messages based on the environment (debug in development, error only in production)
-
 ## Usage 
 1. cd BrainSpace
 2. npm install
@@ -75,6 +73,11 @@ BrainSpace/
 │   │   │   ├── TileContainer.css
 │   │   │   └── TileContainer.jsx
 │   │   └── tileTypes/
+│   │       ├── BoardTile/
+│   │       │   ├── BoardTile.css
+│   │       │   ├── BoardTile.jsx
+│   │       │   ├── BoardTileEdit.jsx
+│   │       │   └── index.js
 │   │       ├── ImageTile/
 │   │       │   ├── ImageTile.jsx
 │   │       │   ├── ImageTileEdit.jsx
@@ -96,7 +99,9 @@ BrainSpace/
 │   ├── context/
 │   │   └── TilesContext.jsx
 │   ├── data/
-│   │   └── demoProfile.js
+│   │   ├── DemoProfile1.js
+│   │   ├── DemoProfile2.js
+│   │   └── DemoProfile3.js
 │   ├── hooks/
 │   │   ├── useDragDrop.js
 │   │   ├── useGridSize.js
@@ -109,8 +114,10 @@ BrainSpace/
 │   │   ├── global.css
 │   │   └── variables.css
 │   ├── utils/
+│   │   ├── colorUtils.js
 │   │   ├── layoutHelpers.js
-│   │   └── logger.js
+│   │   ├── logger.js
+│   │   └── pinterestApi.js
 │   ├── App.jsx
 │   ├── index.js
 │   └── main.jsx

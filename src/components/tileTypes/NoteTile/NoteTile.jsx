@@ -95,8 +95,8 @@ const NoteTile = ({ tile }) => {
   // ----- Synchronise editing state with the latest tile props when entering edit mode -----
   useEffect(() => {
     if (isEditing) {
-      // On entering edit mode, reset the local state so it always matches
-      // the current tile data (fixes bug where stale content was shown).
+      // on entering edit mode, reset the local state so it always matches
+      // the current tile data (fixes stale content bug)
       setEditContent(tile.content || '');
       setBgHue(tile.noteStyle?.bgHue ?? 0);
     }
@@ -122,7 +122,7 @@ const NoteTile = ({ tile }) => {
       noteStyle: {
         ...editStyle,
         bgHue,
-        backgroundColor: computedBgColor,   // persist the computed colour for display
+        backgroundColor: computedBgColor, // persist the computed colour for display
       },
       title: '',
     });
@@ -173,7 +173,7 @@ const NoteTile = ({ tile }) => {
 
   // ----- Display mode -----
   if (!isEditing) {
-    // Determine background: prefer bgHue if present, else fallback to backgroundColor
+    // determine background: prefer bgHue if present, else fallback to backgroundColor
     const style = tile.noteStyle || {};
     const bgHueVal = style.bgHue;
     const background = bgHueVal !== undefined ? getBackgroundFromHue(bgHueVal) : (style.backgroundColor || '#ffffff');

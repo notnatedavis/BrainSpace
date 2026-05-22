@@ -12,7 +12,7 @@ export default {
   editComponent: TimerTileEdit,
   defaultData: () => ({
     title: 'New Timer',
-    mode: 'stopwatch',   // 'stopwatch' or 'countdown'
-    initialTime: 60,     // seconds for countdown
+    mode: 'stopwatch', // 'stopwatch' or 'countdown'
+    initialTime: 60,   // seconds for countdown
   }),
 };

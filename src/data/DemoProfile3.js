@@ -37,7 +37,7 @@ const profile = {
       "boardTitle": "[bathroom]🧼🧴",
       "pinImageUrl": "https://i.pinimg.com/236x/e5/68/1b/e5681be7979d4ebc327edbb3565d9b14.jpg",
       "lastUpdated": 1779304681040,
-      "autoRefreshInterval": 0
+      "autoRefreshInterval": 10
     },
     {
       "id": 1779304740183,
@@ -60,7 +60,7 @@ const profile = {
     }
   ],
   "gridSize": 4,
-  "bgHue": 207,
-  "accentHue": 360
+  "bgHue": 0,       /* white background */
+  "accentHue": 45 
 };
 export default profile;
