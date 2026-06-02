@@ -1,0 +1,66 @@
+/*   src/components/common/HSLColorPicker.css */
+
+.hsl-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.hsl-picker-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  margin-bottom: 0.25rem;
+}
+
+.hsl-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hsl-slider-badge {
+  width: 1.2rem;
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-light);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.hsl-slider {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  outline: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+/* Thumb styling – small circle with outline */
+.hsl-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--thumb-color, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.hsl-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.hsl-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--thumb-color, #fff);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  cursor: pointer;
+}

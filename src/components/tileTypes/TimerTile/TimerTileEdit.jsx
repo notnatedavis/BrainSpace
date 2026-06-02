@@ -3,32 +3,60 @@
 // ----- Imports -----
 import React, { useState } from 'react';
 
-// ----- Helper: parses a "mm:ss" string into total seconds -----
+// ----- Helper: parses a time string (H:MM:SS, MM:SS, or SS) into total seconds -----
 const parseTimeInput = (str) => {
   const trimmed = str.trim();
-  if (!trimmed) return null; // treat empty as invalid
+  if (!trimmed) return null;
+
   const parts = trimmed.split(':');
-  if (parts.length > 2) return null;
-  const minutes = parseInt(parts[0], 10);
-  const seconds = parts.length === 2 ? parseInt(parts[1], 10) : 0;
-  if (
-    isNaN(minutes) ||
-    isNaN(seconds) ||
-    minutes < 0 ||
-    seconds < 0 ||
-    seconds > 59 ||
-    (parts.length === 1 && parts[0].includes(':')) // edge case
-  ) {
+
+  let totalSeconds = null;
+  if (parts.length === 3) {
+    // H:MM:SS
+    const hours = parseInt(parts[0], 10);
+    const minutes = parseInt(parts[1], 10);
+    const seconds = parseInt(parts[2], 10);
+    if (
+      isNaN(hours) || isNaN(minutes) || isNaN(seconds) ||
+      hours < 0 || minutes < 0 || seconds < 0 ||
+      minutes > 59 || seconds > 59
+    ) {
+      return null;
+    }
+    totalSeconds = hours * 3600 + minutes * 60 + seconds;
+  } else if (parts.length === 2) {
+    // MM:SS
+    const minutes = parseInt(parts[0], 10);
+    const seconds = parseInt(parts[1], 10);
+    if (
+      isNaN(minutes) || isNaN(seconds) ||
+      minutes < 0 || seconds < 0 || seconds > 59
+    ) {
+      return null;
+    }
+    totalSeconds = minutes * 60 + seconds;
+  } else if (parts.length === 1) {
+    // SS (plain seconds)
+    const seconds = parseInt(parts[0], 10);
+    if (isNaN(seconds) || seconds < 0) return null;
+    totalSeconds = seconds;
+  } else {
     return null;
   }
-  return minutes * 60 + seconds;
+
+  // Max allowed: 24 hours
+  const MAX_SECONDS = 24 * 3600; // 86400
+  if (totalSeconds > MAX_SECONDS) return null;
+
+  return totalSeconds;
 };
 
-// ----- Format total seconds back to a "mm:ss" display string -----
-const formatSecondsToMMSS = (totalSeconds) => {
-  const mins = Math.floor(totalSeconds / 60);
+// ----- Format total seconds back to a "H:MM:SS" display string (hours optional) -----
+const formatSecondsToHMS = (totalSeconds) => {
+  const hours = Math.floor(totalSeconds / 3600);
+  const mins = Math.floor((totalSeconds % 3600) / 60);
   const secs = totalSeconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
+  return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
 // ----- Main -----
@@ -38,26 +66,24 @@ const TimerTileEdit = ({ tile, onSave }) => {
   const [mode, setMode] = useState(tile.mode || 'stopwatch');
   const [timeString, setTimeString] = useState(() => {
     const initialTime = tile.initialTime || 60;
-    return formatSecondsToMMSS(initialTime);
+    return formatSecondsToHMS(initialTime);
   });
+  const [visualStyle, setVisualStyle] = useState(tile.visualStyle || 'none');
   const [error, setError] = useState(null);
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // always include title and mode
-    const updateData = { title: title.trim(), mode };
+    const updateData = { title: title.trim(), mode, visualStyle };
 
-    // only parse and include initialTime for countdown mode
     if (mode === 'countdown') {
       const totalSeconds = parseTimeInput(timeString);
       if (totalSeconds === null) {
-        setError('Please enter a valid time in mm:ss format (e.g., 5:00).');
+        setError('Enter valid time (max 24h), Use HH:MM:SS / MM:SS / SS');
         return;
       }
       updateData.initialTime = totalSeconds;
     } else {
-      // stopwatch mode – clear any stored initial time (optional)
       updateData.initialTime = undefined;
     }
 
@@ -65,7 +91,7 @@ const TimerTileEdit = ({ tile, onSave }) => {
     onSave(updateData);
   };
 
-  // ----- Inline style definitions (consistent with the ImageTile edit modal) -----
+  // ----- Inline style definitions (consistent with other edit modals) -----
   const formStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -104,7 +130,6 @@ const TimerTileEdit = ({ tile, onSave }) => {
     alignSelf: 'flex-end',
   };
 
-  // ----- Mode segmented control button styles -----
   const segmentStyle = (isActive) => ({
     flex: 1,
     padding: '0.5rem',
@@ -123,7 +148,7 @@ const TimerTileEdit = ({ tile, onSave }) => {
     <form onSubmit={handleSubmit} style={formStyle}>
       {/* ---- Optional title ---- */}
       <div>
-        <label style={labelStyle}>Title (optional)</label>
+        <label style={labelStyle}>Title</label>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -133,7 +158,7 @@ const TimerTileEdit = ({ tile, onSave }) => {
         />
       </div>
 
-      {/* ---- Mode selection as a segmented control ---- */}
+      {/* ---- Mode selection ---- */}
       <div>
         <label style={labelStyle}>Mode</label>
         <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
@@ -160,22 +185,35 @@ const TimerTileEdit = ({ tile, onSave }) => {
         </div>
       </div>
 
-      {/* ---- Countdown initial time (only visible when countdown mode is selected) ---- */}
+      {/* ---- Countdown initial time ---- */}
       {mode === 'countdown' && (
         <div>
-          <label style={labelStyle}>Initial time (mm:ss)</label>
+          <label style={labelStyle}>(max 24h) HH:MM:SS / MM:SS / SS</label>
           <input
             value={timeString}
             onChange={(e) => {
               setTimeString(e.target.value);
               setError(null);
             }}
-            placeholder="5:00"
+            placeholder="1:30:00"
             style={{ ...inputStyle, width: '100%' }}
             aria-label="Initial countdown time"
           />
         </div>
       )}
+
+      {/* ---- Visual style selector ---- */}
+      <div>
+        <label style={labelStyle}>Visual Animation</label>
+        <select
+          value={visualStyle}
+          onChange={(e) => setVisualStyle(e.target.value)}
+          style={{ ...inputStyle, width: '100%' }}
+        >
+          <option value="none">None</option>
+          <option value="circular">Circular Progress</option>
+        </select>
+      </div>
 
       {/* ---- Error message ---- */}
       {error && (

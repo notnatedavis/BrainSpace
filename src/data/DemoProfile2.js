@@ -1,7 +1,8 @@
-// Exported BrainSpace profile: DemoProfile2
+// src/data/DemoProfile2.js
+
 const profile = {
   "id": "exported",
-  "name": "DemoProfile2",
+  "name": "DemoProfile2.js",
   "tiles": [
     {
       "id": 1779303571146,
@@ -12,8 +13,8 @@ const profile = {
       "title": "[organization boards]✂️✏️📎",
       "boardUrl": "https://www.pinterest.com/davispereznathaniel/organization-boards/",
       "boardTitle": "[organization boards]✂️✏️📎",
-      "pinImageUrl": "https://i.pinimg.com/236x/4d/24/77/4d2477294e0c0b14412983f0573dcaf0.jpg",
-      "lastUpdated": 1779304491259,
+      "pinImageUrl": "https://i.pinimg.com/236x/05/62/47/056247ac13b409da6856b27f602daa48.jpg",
+      "lastUpdated": 1780409363174,
       "autoRefreshInterval": 10
     },
     {
@@ -25,8 +26,8 @@ const profile = {
       "title": "[notes]📝",
       "boardUrl": "https://www.pinterest.com/davispereznathaniel/notes/",
       "boardTitle": "[notes]📝",
-      "pinImageUrl": "https://i.pinimg.com/236x/54/49/cb/5449cbe459d1123fc30b99ebe8d9cfdb.jpg",
-      "lastUpdated": 1779304491274,
+      "pinImageUrl": "https://i.pinimg.com/236x/c0/a5/72/c0a5723ff8008b0bbf6e54940868e63d.jpg",
+      "lastUpdated": 1780409363174,
       "autoRefreshInterval": 10
     },
     {
@@ -35,8 +36,10 @@ const profile = {
       "row": 3,
       "col": 1,
       "size": 1,
-      "title": "timer",
-      "mode": "stopwatch"
+      "title": "Pomo",
+      "mode": "countdown",
+      "visualStyle": "circular",
+      "initialTime": 9000
     },
     {
       "id": 1779303625494,
@@ -104,13 +107,21 @@ const profile = {
       "title": "[plants]🌵🌱🪴",
       "boardUrl": "https://www.pinterest.com/davispereznathaniel/plants/",
       "boardTitle": "[plants]🌵🌱🪴",
-      "pinImageUrl": "https://i.pinimg.com/236x/07/4b/60/074b602ea655862bd6317d1da53f4744.jpg",
-      "lastUpdated": 1779304491215,
+      "pinImageUrl": "https://i.pinimg.com/236x/66/2e/1a/662e1ac8ec54b02d046185cf6579d649.jpg",
+      "lastUpdated": 1780409363174,
       "autoRefreshInterval": 10
     }
   ],
   "gridSize": 4,
-  "bgHue": 0,      /* white background */
-  "accentHue": 53   /* warm yellow accent */
+  "bgColor": {
+    "h": 49,
+    "s": 24,
+    "l": 77
+  },
+  "accentColor": {
+    "h": 53,
+    "s": 100,
+    "l": 34
+  }
 };
 export default profile;

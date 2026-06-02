@@ -1,10 +1,8 @@
 //   src/utils/colorUtils.js
 
 /**
- * Returns the CSS colour at a given slider value (0–360).
- * 0         → white
- * 360       → black
- * 1 … 359   → full‑saturation HSL colour hsl(value, 100%, 50%)
+ * Returns the CSS colour for a given hue (0–360) – used for legacy note tile backgrounds.
+ * 0 → white, 360 → black, else full‑saturation HSL.
  */
 export const getGradientColor = (hue) => {
   const clamped = Math.max(0, Math.min(360, Math.round(hue)));
@@ -12,3 +10,8 @@ export const getGradientColor = (hue) => {
   if (clamped === 360) return '#000000';
   return `hsl(${clamped}, 100%, 50%)`;
 };
+
+/**
+ * Converts an HSL object { h, s, l } to a CSS hsl() string
+ */
+export const hslToString = ({ h, s, l }) => `hsl(${h}, ${s}%, ${l}%)`;

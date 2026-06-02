@@ -9,15 +9,60 @@
   gap: 1rem;
 }
 
-.timer-display {
-  font-size: 1.5rem;
-  font-family: monospace;
-  font-weight: bold;
-  background: rgba(0,0,0,0.05);
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+/* Container for ring, time, and finish time – keeps them together */
+.timer-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;   /* for absolute positioning of the SVG behind the text */
+  width: 100%;
+  max-width: 120px;     /* adjust to fit tile size */
+  aspect-ratio: 1 / 1;  /* make it square to hold the ring neatly */
 }
 
+/* Circular progress ring – sits behind the time text */
+.timer-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.timer-ring-track {
+  stroke: var(--color-border);
+}
+
+.timer-ring-progress {
+  stroke: var(--color-accent);
+  transition: stroke-dashoffset 1s linear;
+}
+
+/* Time digits – positioned on top of the ring */
+.timer-display {
+  position: relative;
+  z-index: 2;
+  font-size: 1.1rem;
+  font-family: monospace;
+  font-weight: bold;
+  background: none;            /* transparent so the ring shows through */
+  padding: 0;
+  border-radius: 0;
+  color: var(--color-text);
+}
+
+/* Estimated finish time – sits directly below the visual block */
+.timer-finish-time {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
+  z-index: 2;
+  white-space: nowrap;
+}
+
+/* Controls – always at the bottom, never overlapped */
 .timer-controls {
   display: flex;
   gap: 0.5rem;

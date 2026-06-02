@@ -5,12 +5,12 @@ import React, { useRef, useEffect, useCallback, useContext } from 'react';
 import Tile from '../Tile/Tile';
 import { useDragDrop } from '../../hooks/useDragDrop';
 import { TilesContext } from '../../context/TilesContext';
-import { getGradientColor } from '../../utils/colorUtils';
+import { hslToString } from '../../utils/colorUtils';
 import './TileContainer.css';
 
 // ----- Main -----
 const TileContainer = () => {
-  const { tiles, gridSize, moveTile, removeTile, accentHue } = useContext(TilesContext);
+  const { tiles, gridSize, moveTile, removeTile, accentColor } = useContext(TilesContext);
   const containerRef = useRef(null);
   const {
     draggedId,
@@ -65,10 +65,10 @@ const TileContainer = () => {
     const left = targetCell.col * (tileSize + gap);
     const top = targetCell.row * (tileSize + gap);
 
-    // Build dynamic accent colours from the Secondary slider value
-    const accentColor = getGradientColor(accentHue);
-    const accentShadow = `0 0 0 2px ${accentColor}33`; // 20% opacity
-    const accentBg = `${accentColor}0D`;               // ~5% opacity
+    // Use the accent color (HSL object) to create the indicator colours
+    const accentColorStr = hslToString(accentColor);
+    const accentShadow = `0 0 0 2px ${accentColorStr}33`; // 20% opacity
+    const accentBg = `${accentColorStr}0D`;                // ~5% opacity
 
     targetIndicatorStyle = {
       position: 'absolute',
@@ -77,7 +77,7 @@ const TileContainer = () => {
       width: `${tileSize}px`,
       height: `${tileSize}px`,
       pointerEvents: 'none',
-      border: `2px solid ${accentColor}`,
+      border: `5px solid ${accentColorStr}`,
       borderRadius: 'var(--border-radius)',
       boxShadow: accentShadow,
       background: accentBg,

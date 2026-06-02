@@ -3,13 +3,17 @@
 // ----- Imports -----
 import React, { useContext } from 'react';
 import { TilesContext } from '../../context/TilesContext';
-import ColorSlider from '../common/ColorSlider';
+import HSLColorPicker from '../common/HSLColorPicker';
 import ProfilesDropdown from './ProfilesDropdown';
 import './Sidebar.css';
 
 // ----- Main -----
 const Sidebar = () => {
-  const { gridSize, resizeGrid, bgHue, setBgHue, accentHue, setAccentHue } = useContext(TilesContext);
+  const {
+    gridSize, resizeGrid,
+    bgColor, setBgColor,
+    accentColor, setAccentColor,
+  } = useContext(TilesContext);
 
   const handleGridSliderChange = (e) => {
     resizeGrid(parseInt(e.target.value, 10));
@@ -18,9 +22,9 @@ const Sidebar = () => {
   return (
     <aside className="sidebar">
       <ul>
-        <li>Menu Item 1</li> {/* placeholder - (update) */}
-        <li>Menu Item 2</li> {/* placeholder - (update) */}
-        <li>Menu Item 3</li> {/* placeholder - (update) */}
+        <li>Menu Item 1</li>
+        <li>Menu Item 2</li>
+        <li>Menu Item 3</li>
       </ul>
 
       {/* ---- Profiles dropdown ---- */}
@@ -42,21 +46,21 @@ const Sidebar = () => {
         />
       </div>
 
-      {/* ---- Background colour slider ---- */}
+      {/* ---- Background colour picker ---- */}
       <div className="sidebar-slider">
-        <ColorSlider
+        <HSLColorPicker
           label="Background"
-          hue={bgHue}
-          setHue={setBgHue}
+          hsl={bgColor}
+          onChange={setBgColor}
         />
       </div>
 
-      {/* ---- Accent colour slider ---- */}
+      {/* ---- Accent colour picker ---- */}
       <div className="sidebar-slider">
-        <ColorSlider
+        <HSLColorPicker
           label="Secondary"
-          hue={accentHue}
-          setHue={setAccentHue}
+          hsl={accentColor}
+          onChange={setAccentColor}
         />
       </div>
     </aside>

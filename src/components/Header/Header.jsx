@@ -37,7 +37,10 @@ const Header = () => {
 
   return (
     <header className="header">
-      <h1>BrainSpace</h1>
+      <h1>
+        <span className="title-brain">Brain</span>
+        <span className="title-space">Space</span>
+      </h1>
       <div className="dropdown-container">
         <button
           ref={buttonRef}

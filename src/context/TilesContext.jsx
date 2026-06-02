@@ -3,10 +3,10 @@
 // ----- Imports -----
 import React, { createContext, useState, useCallback, useEffect } from 'react';
 import tileTypes from '../components/tileTypes';
-// Removed: import demoProfile from '../data/demoProfile';  (no longer exists)
+import DefaultLandingPage from '../data/DefaultLandingPage';
 export const TilesContext = createContext();
 
-const INITIAL_GRID_SIZE = 3;
+const INITIAL_GRID_SIZE = DefaultLandingPage.gridSize;
 
 // Helper: check if a cell (row, col) is occupied by any tile in given tiles array
 const isCellOccupied = (tiles, row, col) => {
@@ -68,28 +68,16 @@ const saveProfilesToStorage = (profiles) => {
 
 // ----- Main -----
 export const TilesProvider = ({ children }) => {
-  const [gridSize, setGridSize] = useState(INITIAL_GRID_SIZE);
-  const [tiles, setTiles] = useState(() => {
-    const infoDefault = tileTypes.info.defaultData();
-    return [
-      {
-        id: 1,
-        type: 'info',
-        row: 0,
-        col: 0,
-        size: 1,
-        ...infoDefault,
-      },
-    ];
-  });
-
+  // Initialise from DefaultLandingPage
+  const [gridSize, setGridSize] = useState(DefaultLandingPage.gridSize);
+  const [tiles, setTiles] = useState(DefaultLandingPage.tiles);
   const [editingTileId, setEditingTileId] = useState(null);
-  const [bgHue, setBgHue] = useState(0);
-  const [accentHue, setAccentHue] = useState(105);
+  const [bgColor, setBgColor] = useState(DefaultLandingPage.bgColor);
+  const [accentColor, setAccentColor] = useState(DefaultLandingPage.accentColor);
 
   // LocalStorage‑based profiles
   const [profiles, setProfiles] = useState(loadProfilesFromStorage);
-  const [activeProfileId, setActiveProfileId] = useState(null);
+  const [activeProfileId, setActiveProfileId] = useState(null); // null = landing page
 
   // Persist profiles to localStorage
   useEffect(() => {
@@ -209,9 +197,9 @@ export const TilesProvider = ({ children }) => {
   const createSnapshot = useCallback(() => ({
     tiles,
     gridSize,
-    bgHue,
-    accentHue,
-  }), [tiles, gridSize, bgHue, accentHue]);
+    bgColor,
+    accentColor,
+  }), [tiles, gridSize, bgColor, accentColor]);
 
   const copyCurrentProfile = useCallback(() => {
     const name = window.prompt('Profile name:', 'Copy of current');
@@ -222,8 +210,8 @@ export const TilesProvider = ({ children }) => {
       name: name.trim(),
       tiles: snapshot.tiles,
       gridSize: snapshot.gridSize,
-      bgHue: snapshot.bgHue,
-      accentHue: snapshot.accentHue,
+      bgColor: snapshot.bgColor,
+      accentColor: snapshot.accentColor,
       createdAt: Date.now(),
     };
     setProfiles(prev => [...prev, newProfile]);
@@ -237,8 +225,31 @@ export const TilesProvider = ({ children }) => {
     }
     setTiles(profile.tiles);
     setGridSize(profile.gridSize);
-    setBgHue(profile.bgHue);
-    setAccentHue(profile.accentHue);
+
+    // Handle new HSL format and legacy bgHue/accentHue
+    if (profile.bgColor && profile.accentColor) {
+      setBgColor(profile.bgColor);
+      setAccentColor(profile.accentColor);
+    } else if (profile.bgHue !== undefined && profile.accentHue !== undefined) {
+      // Convert old single‑hue values to HSL
+      const oldBgHue = profile.bgHue;
+      const oldAccentHue = profile.accentHue;
+      setBgColor(
+        oldBgHue === 0 ? { h: 0, s: 0, l: 100 }
+        : oldBgHue === 360 ? { h: 0, s: 0, l: 0 }
+        : { h: oldBgHue, s: 100, l: 50 }
+      );
+      setAccentColor(
+        oldAccentHue === 0 ? { h: 0, s: 0, l: 100 }
+        : oldAccentHue === 360 ? { h: 0, s: 0, l: 0 }
+        : { h: oldAccentHue, s: 100, l: 50 }
+      );
+    } else {
+      // Fallback to defaults
+      setBgColor(DefaultLandingPage.bgColor);
+      setAccentColor(DefaultLandingPage.accentColor);
+    }
+
     setActiveProfileId(profile.id);
   }, []);
 
@@ -249,8 +260,6 @@ export const TilesProvider = ({ children }) => {
     }
   }, [activeProfileId]);
 
-  // Demo profiles are imported directly in ProfilesDropdown
-
   const exportProfile = useCallback(() => {
     const snapshot = createSnapshot();
     const profileName = window.prompt('File name (without extension):', 'Profile');
@@ -260,8 +269,8 @@ export const TilesProvider = ({ children }) => {
       name: profileName.trim(),
       tiles: snapshot.tiles,
       gridSize: snapshot.gridSize,
-      bgHue: snapshot.bgHue,
-      accentHue: snapshot.accentHue,
+      bgColor: snapshot.bgColor,
+      accentColor: snapshot.accentColor,
     };
     const fileContent = `// Exported BrainSpace profile: ${profileData.name}
 const profile = ${JSON.stringify(profileData, null, 2)};
@@ -320,10 +329,10 @@ export default profile;
     setEditingTileId,
     updateTile,
     resizeTile,
-    bgHue,
-    setBgHue,
-    accentHue,
-    setAccentHue,
+    bgColor,
+    setBgColor,
+    accentColor,
+    setAccentColor,
     profiles,
     activeProfileId,
     copyCurrentProfile,

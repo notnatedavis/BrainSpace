@@ -1,10 +1,10 @@
 //   src/components/tileTypes/TimerTile/TimerTile.jsx
 
 // ----- Imports -----
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import './TimerTile.css';
 
-// ----- Helper -----
+// ----- Helper: format seconds to HH:MM:SS -----
 const formatTime = (seconds) => {
   const hrs = Math.floor(seconds / 3600);
   const mins = Math.floor((seconds % 3600) / 60);
@@ -14,9 +14,13 @@ const formatTime = (seconds) => {
     .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 };
 
+// ----- Circular progress ring constants -----
+const CIRCLE_RADIUS = 40;       // SVG radius
+const CIRCLE_CIRCUM = 2 * Math.PI * CIRCLE_RADIUS;
+
 // ----- Main -----
 const TimerTile = ({ tile }) => {
-  const { mode, initialTime } = tile;
+  const { mode, initialTime, visualStyle } = tile;
   const [time, setTime] = useState(mode === 'stopwatch' ? 0 : initialTime);
   const [isRunning, setIsRunning] = useState(false);
   const intervalRef = useRef(null);
@@ -28,7 +32,8 @@ const TimerTile = ({ tile }) => {
     };
   }, []);
 
-  const startTimer = () => {
+  const startTimer = (e) => {
+    e.stopPropagation(); // prevent tile edit modal
     if (isRunning) return;
     setIsRunning(true);
     intervalRef.current = setInterval(() => {
@@ -37,7 +42,6 @@ const TimerTile = ({ tile }) => {
           return prev + 1;
         } else {
           if (prev <= 1) {
-            // Countdown reached zero – stop timer
             setIsRunning(false);
             clearInterval(intervalRef.current);
             return 0;
@@ -48,19 +52,63 @@ const TimerTile = ({ tile }) => {
     }, 1000);
   };
 
-  const pauseTimer = () => {
+  const pauseTimer = (e) => {
+    e.stopPropagation(); // prevent tile edit modal
     setIsRunning(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
   };
 
-  const resetTimer = () => {
-    pauseTimer();
+  const resetTimer = (e) => {
+    e.stopPropagation(); // prevent tile edit modal
+    pauseTimer(e);
     setTime(mode === 'stopwatch' ? 0 : initialTime);
   };
 
+  // ----- Estimated finish time (countdown only) -----
+  const finishTime = useMemo(() => {
+    if (mode !== 'countdown' || time <= 0) return null;
+    const finishDate = new Date(Date.now() + time * 1000);
+    return finishDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }, [mode, time]);
+
+  // ----- Circular progress ring (only for countdown with visualStyle === 'circular') -----
+  const showRing = mode === 'countdown' && visualStyle === 'circular';
+  const ringProgress = mode === 'countdown' ? time / initialTime : 0; // 1 = full, 0 = empty
+  const dashOffset = CIRCLE_CIRCUM * (1 - ringProgress);
+
   return (
     <div className="timer-tile">
-      <div className="timer-display">{formatTime(time)}</div>
+      {/* ---- Visual indicator + time display (wrapped together) ---- */}
+      <div className="timer-visual">
+        {showRing && (
+          <svg className="timer-ring" viewBox="0 0 96 96">
+            <circle
+              className="timer-ring-track"
+              cx="48"
+              cy="48"
+              r={CIRCLE_RADIUS}
+              fill="none"
+              strokeWidth="5"
+            />
+            <circle
+              className="timer-ring-progress"
+              cx="48"
+              cy="48"
+              r={CIRCLE_RADIUS}
+              fill="none"
+              strokeWidth="5"
+              strokeDasharray={CIRCLE_CIRCUM}
+              strokeDashoffset={dashOffset}
+              strokeLinecap="round"
+              transform="rotate(-90 48 48)"
+            />
+          </svg>
+        )}
+        <div className="timer-display">{formatTime(time)}</div>
+        {finishTime && <div className="timer-finish-time">~ {finishTime}</div>}
+      </div>
+
+      {/* ---- Controls ---- */}
       <div className="timer-controls">
         {!isRunning ? (
           <button onClick={startTimer}>Start</button>

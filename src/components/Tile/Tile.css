@@ -5,7 +5,8 @@
   background: var(--color-surface);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-sm);
-  padding: 1.5rem;
+  /* Reduced base padding for a tighter layout */
+  padding: 0.5rem;
   transition: all 0.3s ease;
   overflow: hidden;
   border: 1px solid var(--color-border);
@@ -13,7 +14,8 @@
   display: flex;
   flex-direction: column;
   font-size: calc(var(--font-size-base) * var(--tile-scale, 1));
-  padding: calc(1.5rem * var(--tile-scale, 1));
+  /* The padding now scales with the tile-scale variable (set by TileContainer) */
+  padding: calc(0.5rem * var(--tile-scale, 1));
 }
 
 .tile:hover {
@@ -55,13 +57,14 @@
 
 /* ------ end note tile ------ */
 
+/* Title styling – no divider, tighter spacing */
 .tile-title {
-  margin: 0 0 0.75rem 0;
+  margin: 0 0 0.25rem 0;          /* was 0 0 0.75rem */
   font-size: calc(0.8rem * var(--tile-scale, 1));
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
-  border-bottom: 1px solid var(--color-border);
-  padding-bottom: 0.5rem;
+  /* Removed border-bottom entirely */
+  padding-bottom: 0.25rem;        /* was 0.5rem */
   flex-shrink: 0;
 }
 
@@ -73,6 +76,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding-top: 0.25rem;           /* subtle top gap from title */
 }
 
 .tile-content img {
@@ -84,7 +88,7 @@
 /* Remove Button */
 .remove-tile-btn {
   position: absolute;
-  top: 2px;      /* moved up from 8px → gives more content space */
+  top: 2px;
   left: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -124,7 +128,7 @@
 /* Drag Handle */
 .drag-handle {
   position: absolute;
-  top: 2px;      /* moved up from 8px */
+  top: 2px;
   right: 8px;
   opacity: 0;
   transition: opacity 0.2s ease;
@@ -210,7 +214,6 @@
   opacity: 1;
 }
 
-/* Position each handle at the inner corner (0,0 etc.) and draw L‑shape with borders */
 .resize-top-left {
   top: 0;
   left: 0;
