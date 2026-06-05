@@ -21,6 +21,7 @@ export default {
       fontSize: 'medium',
       fontFamily: 'sans',
       headerLevel: 0,
+      bgHue: 60,       // default background hue (light yellow)
     },
   }),
 };

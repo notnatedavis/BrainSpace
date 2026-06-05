@@ -9,11 +9,12 @@ import './ColorSlider.css';
  * A colour slider that shows a full‑spectrum gradient (white → hues → black)
  * and updates its thumb colour to match the selected value.
  *
- * @param {string}  label   - Label displayed above the slider
- * @param {number}  hue     - Current value (0–360; 0=white, 360=black, 1-359=vibrant hues)
- * @param {function} setHue - Callback to update the value
+ * @param {string}  label     - Label displayed above the slider
+ * @param {number}  hue       - Current value (0–360; 0=white, 360=black, 1-359=vibrant hues)
+ * @param {function} setHue   - Callback to update the value
+ * @param {boolean} hideLabel - If true, hides the label and hue display (only slider shown)
  */
-const ColorSlider = ({ label, hue, setHue }) => {
+const ColorSlider = ({ label, hue, setHue, hideLabel = false }) => {
   // Compute the thumb colour: white at 0°, black at 360°, full‑saturation colour in between
   let thumbColor;
   if (hue <= 5) {
@@ -50,7 +51,7 @@ const ColorSlider = ({ label, hue, setHue }) => {
 
   return (
     <div className="color-slider-wrapper">
-      <label>{label} ({hue}°)</label>
+      {!hideLabel && <label>{label} ({hue}°)</label>}
       <input
         type="range"
         min="0"
@@ -60,7 +61,7 @@ const ColorSlider = ({ label, hue, setHue }) => {
         onChange={handleChange}
         className="color-spectrum-slider"
         style={sliderStyle}
-        aria-label={label}
+        aria-label={hideLabel ? label : undefined}
       />
     </div>
   );

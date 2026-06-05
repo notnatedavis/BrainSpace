@@ -61,6 +61,72 @@ const applyFontSize = (editorRef, deltaPx) => {
   }
 };
 
+// ----- Helper: insert a checkbox at the start of the current line -----
+const insertCheckboxAtLineStart = (editorRef) => {
+  if (!editorRef.current) return;
+  editorRef.current.focus();
+
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+  const range = selection.getRangeAt(0);
+
+  // Find the nearest block ancestor (div, p, or direct child of editor)
+  let startContainer = range.startContainer;
+  if (startContainer.nodeType === Node.TEXT_NODE) {
+    startContainer = startContainer.parentElement;
+  }
+  let block = startContainer;
+  while (block && block !== editorRef.current) {
+    if (block.nodeName === 'DIV' || block.nodeName === 'P' ||
+        (block.parentNode === editorRef.current && block.nodeName !== 'SPAN')) {
+      break;
+    }
+    block = block.parentElement;
+  }
+  if (!block || block === editorRef.current) {
+    // Fallback: use the first child or create a new div
+    block = editorRef.current.firstChild || editorRef.current;
+    if (block.nodeType !== Node.ELEMENT_NODE) {
+      const newDiv = document.createElement('div');
+      editorRef.current.appendChild(newDiv);
+      block = newDiv;
+    }
+  }
+
+  // Check if line already starts with a checkbox
+  const innerHtml = block.innerHTML;
+  if (innerHtml.trimStart().startsWith('<input type="checkbox" class="note-checkbox"')) {
+    return; // already has checkbox at start
+  }
+
+  // Generate unique data-id for this checkbox
+  const uniqueId = `cb_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+  const checkboxHtml = `<input type="checkbox" class="note-checkbox" data-id="${uniqueId}"> `;
+
+  // Insert at beginning of block
+  block.innerHTML = checkboxHtml + innerHtml;
+
+  // Move cursor after the checkbox
+  const newRange = document.createRange();
+  const textNodeAfter = block.firstChild.nextSibling;
+  if (textNodeAfter && textNodeAfter.nodeType === Node.TEXT_NODE) {
+    newRange.setStart(textNodeAfter, 0);
+  } else {
+    newRange.setStart(block, 1);
+  }
+  newRange.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(newRange);
+};
+
+// ----- Helper: update a checkbox's checked attribute in the stored HTML content -----
+const updateCheckboxInContent = (contentHtml, dataId, isChecked) => {
+  // Build regex that matches the entire input tag containing this data-id
+  const regex = new RegExp(`(<input[^>]*data-id="${dataId}"[^>]*?)(\\s+checked)?(\\s*?>)`, 'i');
+  const replacement = isChecked ? `$1 checked$3` : `$1$3`;
+  return contentHtml.replace(regex, replacement);
+};
+
 // ----- Compute background colour from hue -----
 const getBackgroundFromHue = (hue) => {
   if (hue <= 5) return '#ffffff';
@@ -91,6 +157,7 @@ const NoteTile = ({ tile }) => {
   const [bgHue, setBgHue] = useState(tile.noteStyle?.bgHue ?? 0);
 
   const editorRef = useRef(null);
+  const displayRef = useRef(null); // to attach checkbox event listeners
 
   // ----- Synchronise editing state with the latest tile props when entering edit mode -----
   useEffect(() => {
@@ -109,6 +176,38 @@ const NoteTile = ({ tile }) => {
     }
   }, [isEditing, editContent]);
 
+  // ----- Attach checkbox change listeners in display mode -----
+  useEffect(() => {
+    if (!isEditing && displayRef.current) {
+      const checkboxes = displayRef.current.querySelectorAll('.note-checkbox');
+      const handlers = [];
+
+      checkboxes.forEach((cb) => {
+        const handler = (e) => {
+          e.stopPropagation();
+          const dataId = cb.getAttribute('data-id');
+          if (!dataId) return;
+
+          const newChecked = cb.checked;
+          const currentContent = tile.content;
+          const newContent = updateCheckboxInContent(currentContent, dataId, newChecked);
+
+          if (newContent !== currentContent) {
+            updateTile(tile.id, { content: newContent });
+          }
+        };
+        cb.addEventListener('change', handler);
+        handlers.push({ cb, handler });
+      });
+
+      return () => {
+        handlers.forEach(({ cb, handler }) => {
+          cb.removeEventListener('change', handler);
+        });
+      };
+    }
+  }, [isEditing, tile.content, tile.id, updateTile]);
+
   const handleTileClick = (e) => {
     e.stopPropagation();
     setIsEditing(true);
@@ -122,7 +221,7 @@ const NoteTile = ({ tile }) => {
       noteStyle: {
         ...editStyle,
         bgHue,
-        backgroundColor: computedBgColor, // persist the computed colour for display
+        backgroundColor: computedBgColor,
       },
       title: '',
     });
@@ -171,9 +270,22 @@ const NoteTile = ({ tile }) => {
     }
   };
 
+  const applyStrikethrough = () => {
+    if (editorRef.current) {
+      editorRef.current.focus();
+      document.execCommand('strikeThrough', false, null);
+    }
+  };
+
+  // ----- Checkbox insertion -----
+  const handleInsertCheckbox = () => {
+    if (editorRef.current) {
+      insertCheckboxAtLineStart(editorRef);
+    }
+  };
+
   // ----- Display mode -----
   if (!isEditing) {
-    // determine background: prefer bgHue if present, else fallback to backgroundColor
     const style = tile.noteStyle || {};
     const bgHueVal = style.bgHue;
     const background = bgHueVal !== undefined ? getBackgroundFromHue(bgHueVal) : (style.backgroundColor || '#ffffff');
@@ -200,6 +312,7 @@ const NoteTile = ({ tile }) => {
     return (
       <div
         className="note-tile-display"
+        ref={displayRef}
         style={{
           backgroundColor: background,
           width: '100%',
@@ -217,6 +330,16 @@ const NoteTile = ({ tile }) => {
         <HeaderTag style={textStyles}>
           <span dangerouslySetInnerHTML={{ __html: tile.content || 'note pad' }} />
         </HeaderTag>
+        {/* Inline style for checkboxes – scales with text size */}
+        <style>{`
+          .note-checkbox {
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+            margin-right: 0.25em;
+            cursor: pointer;
+          }
+        `}</style>
       </div>
     );
   }
@@ -238,18 +361,22 @@ const NoteTile = ({ tile }) => {
       }}
       onClick={(e) => e.stopPropagation()}
     >
-      {/* ---------- Toolbar row 1: bold / italic / underline / font +/- ---------- */}
+      {/* ---------- Toolbar row 1: bold / italic / underline / strikethrough / font +/- / checkbox ---------- */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
         <button type="button" onClick={applyBold} style={{ fontWeight: 'bold', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>B</button>
         <button type="button" onClick={applyItalic} style={{ fontStyle: 'italic', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>I</button>
         <button type="button" onClick={applyUnderline} style={{ textDecoration: 'underline', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>U</button>
+        {/* Strikethrough button */}
+        <button type="button" onClick={applyStrikethrough} style={{ textDecoration: 'line-through', padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer' }}>S</button>
         <button type="button" onClick={() => applyFontSize(editorRef, -1)} title="Decrease font size by 1 px" style={{ padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>−</button>
         <button type="button" onClick={() => applyFontSize(editorRef, 1)} title="Increase font size by 1 px" style={{ padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer', fontWeight: 'bold' }}>+</button>
+        {/* Checkbox insertion button */}
+        <button type="button" onClick={handleInsertCheckbox} title="Insert checkbox at line start" style={{ padding: '0.2rem 0.6rem', border: '1px solid #ccc', borderRadius: '4px', background: 'transparent', cursor: 'pointer', fontSize: '1.1rem' }}>☐</button>
       </div>
 
-      {/* ---------- Background colour slider ---------- */}
+      {/* ---------- Background colour slider (label hidden) ---------- */}
       <div style={{ marginBottom: '0.5rem' }}>
-        <ColorSlider label="Background" hue={bgHue} setHue={setBgHue} />
+        <ColorSlider label="Background" hue={bgHue} setHue={setBgHue} hideLabel={true} />
       </div>
 
       {/* ---------- Editable area ---------- */}
