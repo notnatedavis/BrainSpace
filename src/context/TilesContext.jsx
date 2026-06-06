@@ -6,10 +6,8 @@ import tileTypes from '../components/tileTypes';
 import DefaultLandingPage from '../data/DefaultLandingPage';
 export const TilesContext = createContext();
 
-const INITIAL_GRID_SIZE = DefaultLandingPage.gridSize;
-
 // Helper: check if a cell (row, col) is occupied by any tile in given tiles array
-const isCellOccupied = (tiles, row, col) => {
+const isCellOccupied = (tiles, rows, cols, row, col) => {
   for (const tile of tiles) {
     const r = tile.row;
     const c = tile.col;
@@ -22,7 +20,7 @@ const isCellOccupied = (tiles, row, col) => {
 };
 
 // Helper: check if a rectangular area is free (excluding a tile with given excludeId)
-const isAreaFree = (tiles, row, col, size, excludeId = null) => {
+const isAreaFree = (tiles, rows, cols, row, col, size, excludeId = null) => {
   for (let r = row; r < row + size; r++) {
     for (let c = col; c < col + size; c++) {
       if (excludeId) {
@@ -35,14 +33,14 @@ const isAreaFree = (tiles, row, col, size, excludeId = null) => {
           }
         }
       } else {
-        if (isCellOccupied(tiles, r, c)) return false;
+        if (isCellOccupied(tiles, rows, cols, r, c)) return false;
       }
     }
   }
   return true;
 };
 
-// ----- Persistence helpers -----
+// ----- Persistence helpers (unchanged) -----
 const PROFILES_STORAGE_KEY = 'brainspace_profiles';
 
 const loadProfilesFromStorage = () => {
@@ -68,8 +66,13 @@ const saveProfilesToStorage = (profiles) => {
 
 // ----- Main -----
 export const TilesProvider = ({ children }) => {
-  // Initialise from DefaultLandingPage
-  const [gridSize, setGridSize] = useState(DefaultLandingPage.gridSize);
+  const initialTiles = Array.isArray(DefaultLandingPage.tiles) 
+    ? DefaultLandingPage.tiles 
+    : [];
+
+  // Initialise from DefaultLandingPage (migrate if needed)
+  const [gridRows, setGridRows] = useState(DefaultLandingPage.gridRows || DefaultLandingPage.gridSize || 3);
+  const [gridCols, setGridCols] = useState(DefaultLandingPage.gridCols || DefaultLandingPage.gridSize || 3);
   const [tiles, setTiles] = useState(DefaultLandingPage.tiles);
   const [editingTileId, setEditingTileId] = useState(null);
   const [bgColor, setBgColor] = useState(DefaultLandingPage.bgColor);
@@ -77,14 +80,14 @@ export const TilesProvider = ({ children }) => {
 
   // LocalStorage‑based profiles
   const [profiles, setProfiles] = useState(loadProfilesFromStorage);
-  const [activeProfileId, setActiveProfileId] = useState(null); // null = landing page
+  const [activeProfileId, setActiveProfileId] = useState(null);
 
   // Persist profiles to localStorage
   useEffect(() => {
     saveProfilesToStorage(profiles);
   }, [profiles]);
 
-  // ----- Tile actions (with row/col and size) -----
+  // ----- Tile actions (with rows and cols) -----
   const addTile = useCallback((type = 'note') => {
     const typeDef = tileTypes[type];
     if (!typeDef) {
@@ -95,9 +98,9 @@ export const TilesProvider = ({ children }) => {
     const newTileId = Date.now();
 
     setTiles(prev => {
-      for (let row = 0; row < gridSize; row++) {
-        for (let col = 0; col < gridSize; col++) {
-          if (!isCellOccupied(prev, row, col)) {
+      for (let row = 0; row < gridRows; row++) {
+        for (let col = 0; col < gridCols; col++) {
+          if (!isCellOccupied(prev, gridRows, gridCols, row, col)) {
             return [...prev, {
               id: newTileId,
               type,
@@ -111,13 +114,12 @@ export const TilesProvider = ({ children }) => {
       }
       return prev; // no space
     });
-  }, [gridSize]);
+  }, [gridRows, gridCols]);
 
   const removeTile = useCallback((id) => {
     setTiles(prev => prev.filter(tile => tile.id !== id));
   }, []);
 
-  // Move a tile to (targetRow, targetCol). If target cell is occupied by another 1×1 tile, swap them
   const moveTile = useCallback((id, targetRow, targetCol) => {
     setTiles(prev => {
       const draggedTile = prev.find(t => t.id === id);
@@ -145,28 +147,25 @@ export const TilesProvider = ({ children }) => {
         return prev;
       }
 
-      if (!isAreaFree(prev, targetRow, targetCol, size, id)) return prev;
+      if (!isAreaFree(prev, gridRows, gridCols, targetRow, targetCol, size, id)) return prev;
 
       return prev.map(tile =>
         tile.id === id ? { ...tile, row: targetRow, col: targetCol } : tile
       );
     });
-  }, []);
+  }, [gridRows, gridCols]);
 
-  // Resize tile to new row, col, size after checking bounds and free area
   const resizeTile = useCallback((id, newRow, newCol, newSize) => {
     setTiles(prev => {
       const tile = prev.find(t => t.id === id);
       if (!tile) return prev;
       const size = newSize || 1;
 
-      // out of grid bounds
-      if (newRow < 0 || newCol < 0 || newRow + size > gridSize || newCol + size > gridSize) {
+      if (newRow < 0 || newCol < 0 || newRow + size > gridRows || newCol + size > gridCols) {
         return prev;
       }
 
-      // check that the target area is free (excluding the tile itself)
-      if (!isAreaFree(prev, newRow, newCol, size, id)) return prev;
+      if (!isAreaFree(prev, gridRows, gridCols, newRow, newCol, size, id)) return prev;
 
       return prev.map(t =>
         t.id === id
@@ -174,7 +173,7 @@ export const TilesProvider = ({ children }) => {
           : t
       );
     });
-  }, [gridSize]);
+  }, [gridRows, gridCols]);
 
   const updateTile = useCallback((id, newData) => {
     setTiles(prev =>
@@ -184,22 +183,23 @@ export const TilesProvider = ({ children }) => {
     );
   }, []);
 
-  // grid resizing – filters tiles would be out of bounds
-  const resizeGrid = useCallback((newSize) => {
-    setGridSize(newSize);
+  const resizeGrid = useCallback((newRows, newCols) => {
+    setGridRows(newRows);
+    setGridCols(newCols);
     setTiles(prev => prev.filter(tile => {
       const s = tile.size || 1;
-      return tile.row + s <= newSize && tile.col + s <= newSize;
+      return tile.row + s <= newRows && tile.col + s <= newCols;
     }));
   }, []);
 
-  // ----- Profile helpers -----
+  // ----- Profile helpers (update to handle rows/cols) -----
   const createSnapshot = useCallback(() => ({
     tiles,
-    gridSize,
+    gridRows,
+    gridCols,
     bgColor,
     accentColor,
-  }), [tiles, gridSize, bgColor, accentColor]);
+  }), [tiles, gridRows, gridCols, bgColor, accentColor]);
 
   const copyCurrentProfile = useCallback(() => {
     const name = window.prompt('Profile name:', 'Copy of current');
@@ -209,7 +209,8 @@ export const TilesProvider = ({ children }) => {
       id: Date.now(),
       name: name.trim(),
       tiles: snapshot.tiles,
-      gridSize: snapshot.gridSize,
+      gridRows: snapshot.gridRows,
+      gridCols: snapshot.gridCols,
       bgColor: snapshot.bgColor,
       accentColor: snapshot.accentColor,
       createdAt: Date.now(),
@@ -224,14 +225,22 @@ export const TilesProvider = ({ children }) => {
       return;
     }
     setTiles(profile.tiles);
-    setGridSize(profile.gridSize);
+    // Handle legacy gridSize vs new rows/cols
+    if (profile.gridRows !== undefined && profile.gridCols !== undefined) {
+      setGridRows(profile.gridRows);
+      setGridCols(profile.gridCols);
+    } else if (profile.gridSize !== undefined) {
+      setGridRows(profile.gridSize);
+      setGridCols(profile.gridSize);
+    } else {
+      setGridRows(3);
+      setGridCols(3);
+    }
 
-    // Handle new HSL format and legacy bgHue/accentHue
     if (profile.bgColor && profile.accentColor) {
       setBgColor(profile.bgColor);
       setAccentColor(profile.accentColor);
     } else if (profile.bgHue !== undefined && profile.accentHue !== undefined) {
-      // Convert old single‑hue values to HSL
       const oldBgHue = profile.bgHue;
       const oldAccentHue = profile.accentHue;
       setBgColor(
@@ -245,7 +254,6 @@ export const TilesProvider = ({ children }) => {
         : { h: oldAccentHue, s: 100, l: 50 }
       );
     } else {
-      // Fallback to defaults
       setBgColor(DefaultLandingPage.bgColor);
       setAccentColor(DefaultLandingPage.accentColor);
     }
@@ -268,7 +276,8 @@ export const TilesProvider = ({ children }) => {
       id: 'exported',
       name: profileName.trim(),
       tiles: snapshot.tiles,
-      gridSize: snapshot.gridSize,
+      gridRows: snapshot.gridRows,
+      gridCols: snapshot.gridCols,
       bgColor: snapshot.bgColor,
       accentColor: snapshot.accentColor,
     };
@@ -320,7 +329,8 @@ export default profile;
 
   const value = {
     tiles,
-    gridSize,
+    gridRows,
+    gridCols,
     addTile,
     removeTile,
     moveTile,

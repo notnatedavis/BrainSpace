@@ -6,19 +6,27 @@ import Tile from '../Tile/Tile';
 import { useDragDrop } from '../../hooks/useDragDrop';
 import { TilesContext } from '../../context/TilesContext';
 import { hslToString } from '../../utils/colorUtils';
+import GridResizeHandles from './GridResizeHandles';
 import './TileContainer.css';
 
 // ----- Main -----
 const TileContainer = () => {
-  const { tiles, gridSize, moveTile, removeTile, accentColor } = useContext(TilesContext);
+  const { tiles, gridRows, gridCols, moveTile, removeTile, accentColor } = useContext(TilesContext);
+  // guard : if tiles is not an array, render nothing (prevents .map error)
+  if (!Array.isArray(tiles)) {
+    console.error('TileContainer: tiles is not an array', tiles);
+    return null;
+  }
+
   const containerRef = useRef(null);
+
   const {
     draggedId,
     targetCell,
     startDrag,
     updateDrag,
     endDrag,
-  } = useDragDrop(containerRef, gridSize, moveTile);
+  } = useDragDrop(containerRef, gridRows, gridCols, moveTile);
 
   useEffect(() => {
     if (draggedId !== null) {
@@ -41,22 +49,20 @@ const TileContainer = () => {
 
   // ----- Dynamic tile sizing & centering (locked ratio) -----
   const baseSize = 220;
-  const scale = 1 - (gridSize - 3) * 0.1;
+  const scaleRows = 1 - (gridRows - 3) * 0.1;
+  const scaleCols = 1 - (gridCols - 3) * 0.1;
+  const scale = Math.min(scaleRows, scaleCols); // keep tiles square and consistent
   const tileSize = Math.round(baseSize * scale);
-  const gap = 24; // must match --space-lg (1.5rem = 24px) – keep in sync with CSS variable
-
-  // ----- Visual border outline dependent on grid size -----
-  const outlineWidth = `${Math.max(1, (gridSize - 2) * 2)}px`;
+  const gap = 24; // must match --space-lg
 
   const gridStyle = {
     display: 'inline-grid',
-    gridTemplateColumns: `repeat(${gridSize}, ${tileSize}px)`,
-    gridTemplateRows: `repeat(${gridSize}, ${tileSize}px)`,
+    gridTemplateColumns: `repeat(${gridCols}, ${tileSize}px)`,
+    gridTemplateRows: `repeat(${gridRows}, ${tileSize}px)`,
     gap: 'var(--space-lg)',
-    justifyContent: 'center',
     overflow: 'visible',
     '--tile-scale': scale,
-    '--grid-outline-width': outlineWidth,
+    position: 'relative',
   };
 
   // ----- Compute style for the drop‑target indicator (pixel‑perfect alignment) -----
@@ -65,10 +71,9 @@ const TileContainer = () => {
     const left = targetCell.col * (tileSize + gap);
     const top = targetCell.row * (tileSize + gap);
 
-    // Use the accent color (HSL object) to create the indicator colours
     const accentColorStr = hslToString(accentColor);
-    const accentShadow = `0 0 0 2px ${accentColorStr}33`; // 20% opacity
-    const accentBg = `${accentColorStr}0D`;                // ~5% opacity
+    const accentShadow = `0 0 0 2px ${accentColorStr}33`;
+    const accentBg = `${accentColorStr}0D`;
 
     targetIndicatorStyle = {
       position: 'absolute',
@@ -86,31 +91,28 @@ const TileContainer = () => {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="tile-container"
-      style={gridStyle}
-    >
-      {/* ---- Tile grid (painted first) ---- */}
-      {tiles.map((tile) => {
-        const isDragging = draggedId === tile.id;
-        return (
-          <Tile
-            key={tile.id}
-            tile={tile}
-            onRemove={removeTile}
-            onDragStart={() => handleDragStart(tile.id)}
-            isDragging={isDragging}
-            containerRef={containerRef}
-            gridSize={gridSize}
-          />
-        );
-      })}
-
-      {/* ---- Drop target indicator (floats on top, does NOT affect grid layout) ---- */}
-      {targetIndicatorStyle && (
-        <div className="drop-target-indicator" style={targetIndicatorStyle} />
-      )}
+    <div style={{ position: 'relative', display: 'inline-block' }}>
+      <div ref={containerRef} className="tile-container" style={gridStyle}>
+        {tiles.map((tile) => {
+          const isDragging = draggedId === tile.id;
+          return (
+            <Tile
+              key={tile.id}
+              tile={tile}
+              onRemove={removeTile}
+              onDragStart={() => handleDragStart(tile.id)}
+              isDragging={isDragging}
+              containerRef={containerRef}
+              gridRows={gridRows}
+              gridCols={gridCols}
+            />
+          );
+        })}
+        {targetIndicatorStyle && (
+          <div className="drop-target-indicator" style={targetIndicatorStyle} />
+        )}
+      </div>
+      <GridResizeHandles containerRef={containerRef} />
     </div>
   );
 };

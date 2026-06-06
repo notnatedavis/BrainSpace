@@ -11,7 +11,7 @@ import './Tile.css';
 const SHRINK_MARGIN = 0.2; // cell units
 
 // ----- Main -----
-const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize }) => {
+const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows, gridCols }) => {
   const { setEditingTileId, resizeTile } = useContext(TilesContext);
 
   // ----- Resize state -----
@@ -57,8 +57,8 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
     const handleMouseMove = (e) => {
       if (!containerRef.current || !initialLayout || !resizeCorner) return;
       const rect = containerRef.current.getBoundingClientRect();
-      const cellWidth = rect.width / gridSize;
-      const cellHeight = rect.height / gridSize;
+      const cellWidth = rect.width / gridCols;
+      const cellHeight = rect.height / gridRows;
 
       // continuous floating‑point cell coordinate of the mouse
       const mouseColFloat = (e.clientX - rect.left) / cellWidth;
@@ -71,13 +71,12 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
 
       // compute spans from anchor to the mouse (floats) for each corner
       const computeSize = (rowSpan, colSpan) => {
-        
         // initial raw size (ceiling to integer cells) – used for expansion
         const rawSize = Math.ceil(Math.max(rowSpan, colSpan));
 
         // clamp to valid range
-        const clampedSize = Math.min(gridSize - newRow, gridSize - newCol, Math.max(1, rawSize));
-
+        const clampedSize = Math.min(gridRows - newRow, gridCols - newCol, Math.max(1, rawSize));
+        
         // Shrink helper: if the raw ceil still equals the current size, but the
         // mouse has moved sufficiently inside the tile, force a shrink.
         if (clampedSize === initialSize && initialSize > 1) {
@@ -126,8 +125,8 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
       }
 
       // final sanity clamp to grid bounds
-      newRow = Math.max(0, Math.min(newRow, gridSize - newSize));
-      newCol = Math.max(0, Math.min(newCol, gridSize - newSize));
+      newRow = Math.max(0, Math.min(newRow, gridRows - newSize));
+      newCol = Math.max(0, Math.min(newCol, gridCols - newSize));
 
       resizeTile(tile.id, newRow, newCol, newSize);
     };
@@ -144,7 +143,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizing, resizeCorner, initialLayout, containerRef, gridSize, tile.id, resizeTile]);
+  }, [resizing, resizeCorner, initialLayout, containerRef, gridRows, gridCols, tile.id, resizeTile]);
 
   return (
     <div

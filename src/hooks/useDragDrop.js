@@ -4,9 +4,9 @@
 import { useState, useCallback } from 'react';
 
 // ----- Main -----
-export const useDragDrop = (containerRef, gridSize, onMoveTile) => {
+export const useDragDrop = (containerRef, gridRows, gridCols, onMoveTile) => {
   const [draggedId, setDraggedId] = useState(null);
-  const [targetCell, setTargetCell] = useState(null); // { row, col } | null
+  const [targetCell, setTargetCell] = useState(null);
 
   const startDrag = useCallback((tileId) => {
     setDraggedId(tileId);
@@ -15,18 +15,18 @@ export const useDragDrop = (containerRef, gridSize, onMoveTile) => {
   const updateDrag = useCallback((clientX, clientY) => {
     if (draggedId === null || !containerRef.current) return;
     const rect = containerRef.current.getBoundingClientRect();
-    const cellWidth = rect.width / gridSize;
-    const cellHeight = rect.height / gridSize;
+    const cellWidth = rect.width / gridCols;
+    const cellHeight = rect.height / gridRows;
 
     const col = Math.floor((clientX - rect.left) / cellWidth);
     const row = Math.floor((clientY - rect.top) / cellHeight);
 
-    if (col >= 0 && col < gridSize && row >= 0 && row < gridSize) {
+    if (col >= 0 && col < gridCols && row >= 0 && row < gridRows) {
       setTargetCell({ row, col });
     } else {
       setTargetCell(null);
     }
-  }, [draggedId, containerRef, gridSize]);
+  }, [draggedId, containerRef, gridRows, gridCols]);
 
   const endDrag = useCallback(() => {
     if (draggedId !== null && targetCell !== null) {
@@ -36,11 +36,5 @@ export const useDragDrop = (containerRef, gridSize, onMoveTile) => {
     setTargetCell(null);
   }, [draggedId, targetCell, onMoveTile]);
 
-  return {
-    draggedId,
-    targetCell,
-    startDrag,
-    updateDrag,
-    endDrag,
-  };
+  return { draggedId, targetCell, startDrag, updateDrag, endDrag };
 };

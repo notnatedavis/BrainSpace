@@ -10,13 +10,21 @@ import './Sidebar.css';
 // ----- Main -----
 const Sidebar = () => {
   const {
-    gridSize, resizeGrid,
-    bgColor, setBgColor,
-    accentColor, setAccentColor,
+    gridRows,
+    gridCols,
+    resizeGrid,
+    bgColor,
+    setBgColor,
+    accentColor,
+    setAccentColor,
   } = useContext(TilesContext);
 
-  const handleGridSliderChange = (e) => {
-    resizeGrid(parseInt(e.target.value, 10));
+  const handleRowsChange = (e) => {
+    resizeGrid(parseInt(e.target.value, 10), gridCols);
+  };
+  
+  const handleColsChange = (e) => {
+    resizeGrid(gridRows, parseInt(e.target.value, 10));
   };
 
   return (
@@ -33,19 +41,34 @@ const Sidebar = () => {
       </div>
 
       {/* ---- Grid size slider ---- */}
+      {/* Row slider */}
       <div className="sidebar-slider">
-        <label htmlFor="grid-slider">Grid: {gridSize}×{gridSize}</label>
+        <label htmlFor="rows-slider">Rows: {gridRows}</label>
         <input
           type="range"
-          id="grid-slider"
+          id="rows-slider"
           min="3"
           max="6"
           step="1"
-          value={gridSize}
-          onChange={handleGridSliderChange}
+          value={gridRows}
+          onChange={handleRowsChange}
         />
       </div>
 
+      {/* Column slider */}
+      <div className="sidebar-slider">
+        <label htmlFor="cols-slider">Cols: {gridCols}</label>
+        <input
+          type="range"
+          id="cols-slider"
+          min="3"
+          max="6"
+          step="1"
+          value={gridCols}
+          onChange={handleColsChange}
+        />
+      </div>
+      
       {/* ---- Background colour picker ---- */}
       <div className="sidebar-slider">
         <HSLColorPicker

@@ -25,4 +25,7 @@
   padding: var(--space-lg);
   overflow-y: auto;
   background-color: var(--color-background);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
