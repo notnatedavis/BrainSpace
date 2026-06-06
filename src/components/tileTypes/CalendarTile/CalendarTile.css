@@ -1,0 +1,102 @@
+/*   src/components/tileTypes/CalendarTile/CalendarTile.css */
+
+.calendar-tile-wrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem;
+  border-radius: var(--border-radius);
+  box-sizing: border-box;
+  overflow: hidden;
+  font-size: 0.8rem;
+  color: var(--color-text);
+}
+
+/* Navigation row */
+.calendar-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+  flex-shrink: 0;
+}
+
+.calendar-month-label {
+  font-weight: var(--font-weight-bold);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* Circular accent-filled buttons */
+.calendar-nav-btn {
+  width: 1.8em;
+  height: 1.8em;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
+  line-height: 1;
+  color: #ffffff;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.1s;
+  /* Background colour set via inline style to accentColor */
+}
+
+.calendar-nav-btn:hover {
+  opacity: 0.85;
+  transform: scale(0.95);
+}
+
+/* Weekday row */
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  margin-bottom: 0.15rem;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-weight: var(--font-weight-bold);
+  font-size: 0.65rem;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+}
+
+/* Day grid */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  flex: 1;
+}
+
+.calendar-day {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.15s, color 0.15s;
+  cursor: default;
+}
+
+.calendar-day.empty {
+  visibility: hidden;
+}
+
+.calendar-day:hover:not(.empty) {
+  background-color: var(--color-border);
+}
+
+.calendar-day.today {
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+
+.calendar-day.pinned:not(.today) {
+  border: 2px solid var(--color-accent);
+  box-sizing: border-box;
+}

@@ -101,6 +101,7 @@ const insertCheckboxAtLineStart = (editorRef) => {
 
   // Generate unique data-id for this checkbox
   const uniqueId = `cb_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+  // Trailing space ensures a gap between the checkbox and the following text
   const checkboxHtml = `<input type="checkbox" class="note-checkbox" data-id="${uniqueId}"> `;
 
   // Insert at beginning of block
@@ -121,8 +122,12 @@ const insertCheckboxAtLineStart = (editorRef) => {
 
 // ----- Helper: update a checkbox's checked attribute in the stored HTML content -----
 const updateCheckboxInContent = (contentHtml, dataId, isChecked) => {
-  // Build regex that matches the entire input tag containing this data-id
-  const regex = new RegExp(`(<input[^>]*data-id="${dataId}"[^>]*?)(\\s+checked)?(\\s*?>)`, 'i');
+  // Matches the input tag with the given data-id, optionally capturing
+  // an existing "checked" attribute (bare or with value).
+  const regex = new RegExp(
+    `(<input[^>]*data-id="${dataId}"[^>]*?)(\\s+checked(?:\\s*=\\s*["'][^"']*["'])?)?(\\s*?>)`,
+    'i'
+  );
   const replacement = isChecked ? `$1 checked$3` : `$1$3`;
   return contentHtml.replace(regex, replacement);
 };
@@ -176,15 +181,15 @@ const NoteTile = ({ tile }) => {
     }
   }, [isEditing, editContent]);
 
-  // ----- Attach checkbox change listeners in display mode -----
+  // ----- Attach checkbox change & click listeners in display mode -----
   useEffect(() => {
     if (!isEditing && displayRef.current) {
       const checkboxes = displayRef.current.querySelectorAll('.note-checkbox');
       const handlers = [];
 
       checkboxes.forEach((cb) => {
-        const handler = (e) => {
-          e.stopPropagation();
+        const changeHandler = (e) => {
+          e.stopPropagation(); // prevent tile click (belt)
           const dataId = cb.getAttribute('data-id');
           if (!dataId) return;
 
@@ -196,13 +201,20 @@ const NoteTile = ({ tile }) => {
             updateTile(tile.id, { content: newContent });
           }
         };
-        cb.addEventListener('change', handler);
-        handlers.push({ cb, handler });
+        // Prevent the checkbox click from reaching the tile and opening the editor
+        const clickHandler = (e) => {
+          e.stopPropagation();
+        };
+
+        cb.addEventListener('change', changeHandler);
+        cb.addEventListener('click', clickHandler);
+        handlers.push({ cb, changeHandler, clickHandler });
       });
 
       return () => {
-        handlers.forEach(({ cb, handler }) => {
-          cb.removeEventListener('change', handler);
+        handlers.forEach(({ cb, changeHandler, clickHandler }) => {
+          cb.removeEventListener('change', changeHandler);
+          cb.removeEventListener('click', clickHandler);
         });
       };
     }

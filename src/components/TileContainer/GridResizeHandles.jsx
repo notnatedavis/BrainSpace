@@ -4,6 +4,14 @@
 import React, { useContext, useState, useCallback, useRef } from 'react';
 import { TilesContext } from '../../context/TilesContext';
 
+// ----- Custom rounding with a lower threshold for earlier triggering -----
+const THRESHOLD = 0.1; // smaller = more responsive
+const customRound = (val, threshold) => {
+  const sign = val >= 0 ? 1 : -1;
+  const abs = Math.abs(val);
+  return sign * Math.floor(abs + (1 - threshold));
+};
+
 // ----- Main -----
 const GridResizeHandles = ({ containerRef }) => {
   const { gridRows, gridCols, resizeGrid } = useContext(TilesContext);
@@ -36,32 +44,32 @@ const GridResizeHandles = ({ containerRef }) => {
 
     switch (handleType) {
       case 'e': // right edge → increase/decrease columns
-        deltaCols = Math.round(deltaX / cellWidth);
+        deltaCols = customRound(deltaX / cellWidth, THRESHOLD);
         break;
       case 'w': // left edge
-        deltaCols = -Math.round(deltaX / cellWidth);
+        deltaCols = -customRound(deltaX / cellWidth, THRESHOLD);
         break;
       case 's': // bottom edge
-        deltaRows = Math.round(deltaY / cellHeight);
+        deltaRows = customRound(deltaY / cellHeight, THRESHOLD);
         break;
       case 'n': // top edge
-        deltaRows = -Math.round(deltaY / cellHeight);
+        deltaRows = -customRound(deltaY / cellHeight, THRESHOLD);
         break;
       case 'ne': // top-right corner
-        deltaRows = -Math.round(deltaY / cellHeight);
-        deltaCols = Math.round(deltaX / cellWidth);
+        deltaRows = -customRound(deltaY / cellHeight, THRESHOLD);
+        deltaCols = customRound(deltaX / cellWidth, THRESHOLD);
         break;
       case 'nw': // top-left
-        deltaRows = -Math.round(deltaY / cellHeight);
-        deltaCols = -Math.round(deltaX / cellWidth);
+        deltaRows = -customRound(deltaY / cellHeight, THRESHOLD);
+        deltaCols = -customRound(deltaX / cellWidth, THRESHOLD);
         break;
       case 'se': // bottom-right
-        deltaRows = Math.round(deltaY / cellHeight);
-        deltaCols = Math.round(deltaX / cellWidth);
+        deltaRows = customRound(deltaY / cellHeight, THRESHOLD);
+        deltaCols = customRound(deltaX / cellWidth, THRESHOLD);
         break;
       case 'sw': // bottom-left
-        deltaRows = Math.round(deltaY / cellHeight);
-        deltaCols = -Math.round(deltaX / cellWidth);
+        deltaRows = customRound(deltaY / cellHeight, THRESHOLD);
+        deltaCols = -customRound(deltaX / cellWidth, THRESHOLD);
         break;
       default:
         break;
@@ -99,6 +107,7 @@ const GridResizeHandles = ({ containerRef }) => {
   // Corner handles: 16x16px squares at corners
   const cornerSize = 16;
   const edgeSize = 8;
+  const OFFSET = -10;
 
   return (
     <>
@@ -106,7 +115,7 @@ const GridResizeHandles = ({ containerRef }) => {
       <div
         style={{
           ...handleStyle,
-          top: -edgeSize / 2,
+          top: OFFSET,
           left: cornerSize,
           right: cornerSize,
           height: edgeSize,
@@ -118,7 +127,7 @@ const GridResizeHandles = ({ containerRef }) => {
       <div
         style={{
           ...handleStyle,
-          bottom: -edgeSize / 2,
+          bottom: OFFSET,
           left: cornerSize,
           right: cornerSize,
           height: edgeSize,
@@ -130,7 +139,7 @@ const GridResizeHandles = ({ containerRef }) => {
       <div
         style={{
           ...handleStyle,
-          left: -edgeSize / 2,
+          left: OFFSET,
           top: cornerSize,
           bottom: cornerSize,
           width: edgeSize,
@@ -142,7 +151,7 @@ const GridResizeHandles = ({ containerRef }) => {
       <div
         style={{
           ...handleStyle,
-          right: -edgeSize / 2,
+          right: OFFSET,
           top: cornerSize,
           bottom: cornerSize,
           width: edgeSize,
@@ -152,19 +161,47 @@ const GridResizeHandles = ({ containerRef }) => {
       />
       {/* Corners */}
       <div
-        style={{ ...handleStyle, top: -cornerSize / 2, left: -cornerSize / 2, width: cornerSize, height: cornerSize, cursor: 'nwse-resize' }}
+        style = {{
+          ...handleStyle,
+          top: OFFSET,
+          left: OFFSET,
+          width: cornerSize,
+          height: cornerSize,
+          cursor: 'nwse-resize',
+        }}
         onMouseDown={handleMouseDown('nw')}
       />
       <div
-        style={{ ...handleStyle, top: -cornerSize / 2, right: -cornerSize / 2, width: cornerSize, height: cornerSize, cursor: 'nesw-resize' }}
+        style = {{
+          ...handleStyle,
+          top: OFFSET,
+          right: OFFSET,
+          width: cornerSize,
+          height: cornerSize,
+          cursor: 'nesw-resize',
+        }}
         onMouseDown={handleMouseDown('ne')}
       />
       <div
-        style={{ ...handleStyle, bottom: -cornerSize / 2, left: -cornerSize / 2, width: cornerSize, height: cornerSize, cursor: 'nesw-resize' }}
+        style = {{
+          ...handleStyle,
+          bottom: OFFSET,
+          left: OFFSET,
+          width: cornerSize,
+          height: cornerSize,
+          cursor: 'nesw-resize',
+        }}
         onMouseDown={handleMouseDown('sw')}
       />
       <div
-        style={{ ...handleStyle, bottom: -cornerSize / 2, right: -cornerSize / 2, width: cornerSize, height: cornerSize, cursor: 'nwse-resize' }}
+        style = {{
+          ...handleStyle,
+          bottom: OFFSET,
+          right: OFFSET,
+          width: cornerSize,
+          height: cornerSize,
+          cursor: 'nwse-resize',
+        }}
         onMouseDown={handleMouseDown('se')}
       />
     </>

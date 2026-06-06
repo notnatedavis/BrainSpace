@@ -35,6 +35,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
   const isNoteTile = tile.type === 'note';
   const isBoardWithImage = tile.type === 'board' && tile.pinImageUrl;
   const isYoutubeWithUrl = tile.type === 'youtube' && tile.url;
+  const isCalendarTile = tile.type === 'calendar';
 
   const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${isImageWithContent ? 'image-tile-filled' : ''} ${isNoteTile ? 'note-tile' : ''} ${isBoardWithImage ? 'board-tile-filled' : ''} ${isYoutubeWithUrl ? 'youtube-tile-filled' : ''}`;
 
@@ -171,9 +172,14 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
         onMouseDown={handleResizeMouseDown('br')}
       />
 
-      {!(isImageWithContent || isNoteTile || isBoardWithImage || isYoutubeWithUrl) && (
-        <h3 className="tile-title">{tile.title}</h3>
-      )}
+      {!( /* suppress titles for : */
+        isImageWithContent ||
+        isNoteTile ||
+        isBoardWithImage ||
+        isYoutubeWithUrl ||
+        isCalendarTile
+      ) && <h3 className="tile-title">{tile.title}</h3>}
+
       <div className="tile-content" onClick={handleContentClick}>
         <TileContent tile={tile} />
       </div>
