@@ -22,7 +22,7 @@ const getYoutubeVideoId = (url) => {
 
 // ----- Main -----
 const YoutubeTile = ({ tile }) => {
-  const { url, title } = tile;
+  const { url } = tile;
   const videoId = getYoutubeVideoId(url);
 
   // No URL or invalid URL: show placeholder
@@ -50,13 +50,11 @@ const YoutubeTile = ({ tile }) => {
 
   const embedSrc = `https://www.youtube.com/embed/${videoId}`;
 
+  // Video fills entire tile – no padding, full width/height
   return (
     <div
       style={{
         background: '#000000',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
         width: '100%',
         height: '100%',
         borderRadius: 'var(--border-radius)',
@@ -65,16 +63,14 @@ const YoutubeTile = ({ tile }) => {
     >
       <iframe
         src={embedSrc}
-        title={title || 'YouTube video'}
+        title="YouTube video"
         frameBorder="0"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
         style={{
-          maxWidth: '100%',
-          maxHeight: '100%',
-          width: 'auto',
-          height: 'auto',
-          aspectRatio: '16 / 9',
+          width: '100%',
+          height: '100%',
+          display: 'block',
         }}
       />
     </div>

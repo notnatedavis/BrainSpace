@@ -34,8 +34,9 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
   const isImageWithContent = tile.type === 'image' && tile.content;
   const isNoteTile = tile.type === 'note';
   const isBoardWithImage = tile.type === 'board' && tile.pinImageUrl;
+  const isYoutubeWithUrl = tile.type === 'youtube' && tile.url;
 
-  const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${isImageWithContent ? 'image-tile-filled' : ''} ${isNoteTile ? 'note-tile' : ''} ${isBoardWithImage ? 'board-tile-filled' : ''}`;
+  const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${isImageWithContent ? 'image-tile-filled' : ''} ${isNoteTile ? 'note-tile' : ''} ${isBoardWithImage ? 'board-tile-filled' : ''} ${isYoutubeWithUrl ? 'youtube-tile-filled' : ''}`;
 
   // ----- Resize event handlers -----
   const handleResizeMouseDown = useCallback((corner) => (e) => {
@@ -171,7 +172,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridSize 
         onMouseDown={handleResizeMouseDown('br')}
       />
 
-      {!(isImageWithContent || isNoteTile || isBoardWithImage) && (
+      {!(isImageWithContent || isNoteTile || isBoardWithImage || isYoutubeWithUrl) && (
         <h3 className="tile-title">{tile.title}</h3>
       )}
       <div className="tile-content" onClick={handleContentClick}>

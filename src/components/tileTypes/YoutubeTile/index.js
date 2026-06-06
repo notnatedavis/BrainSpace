@@ -11,7 +11,6 @@ export default {
   component: YoutubeTile,
   editComponent: YoutubeTileEdit,
   defaultData: () => ({
-    title: 'YouTube Video',
     url: '',
   }),
 };

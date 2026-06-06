@@ -20,7 +20,6 @@ const getYoutubeVideoId = (url) => {
 // ----- Main -----
 const YoutubeTileEdit = ({ tile, onSave }) => {
   const [url, setUrl] = useState(tile.url || '');
-  const [title, setTitle] = useState(tile.title || '');
   const [error, setError] = useState(null);
 
   const handleSubmit = (e) => {
@@ -41,7 +40,6 @@ const YoutubeTileEdit = ({ tile, onSave }) => {
     setError(null);
     onSave({
       url: trimmedUrl,
-      title: title.trim() || 'YouTube Video',
     });
   };
 
@@ -92,19 +90,6 @@ const YoutubeTileEdit = ({ tile, onSave }) => {
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      {/* Title field */}
-      <div>
-        <label style={labelStyle}>Title (optional)</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="My favourite video"
-          style={{ ...inputStyle, width: '100%' }}
-          aria-label="Video title"
-        />
-      </div>
-
       {/* YouTube URL field */}
       <div>
         <label style={labelStyle}>YouTube URL</label>
