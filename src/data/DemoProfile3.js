@@ -71,6 +71,10 @@ const profile = {
     "h": 360,
     "s": 82,
     "l": 85
-  }
+  },
+  "backgroundType": "none",
+  "backgroundValue": "",
+  "backgroundOpacity": 0.3,
+  "backgroundMuted": true
 };
 export default profile;

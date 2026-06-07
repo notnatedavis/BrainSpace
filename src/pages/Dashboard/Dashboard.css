@@ -5,17 +5,18 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  /*max-width: 1400px;*/
   margin: 0 auto;
   padding: var(--space-lg);
-  background-color: var(--color-background);
+  /* Remove background-color so wallpaper shows through */
+  background-color: transparent;
 }
 
 .dashboard-main {
   display: flex;
   flex: 1;
   overflow: hidden;
-  background-color: var(--color-surface);
+  /* Make transparent to show background */
+  background-color: transparent;
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-sm);
 }
@@ -24,7 +25,8 @@
   flex: 1;
   padding: var(--space-lg);
   overflow-y: auto;
-  background-color: var(--color-background);
+  /* Transparent to let background through */
+  background-color: transparent;
   display: flex;
   justify-content: center;
   align-items: center;

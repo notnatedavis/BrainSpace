@@ -26,7 +26,11 @@ const profile = {
     h: 152,
     s: 26,
     l: 54
-  }
+  },
+  backgroundType: "none",
+  backgroundValue: "",
+  backgroundOpacity: 0.3,
+  backgroundMuted: true
 };
 
 export default profile;

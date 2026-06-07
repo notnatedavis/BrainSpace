@@ -1,4 +1,4 @@
-//   src/context/TilesContext.jsx
+// src/context/TilesContext.jsx
 
 // ----- Imports -----
 import React, { createContext, useState, useCallback, useEffect } from 'react';
@@ -40,7 +40,7 @@ const isAreaFree = (tiles, rows, cols, row, col, size, excludeId = null) => {
   return true;
 };
 
-// ----- Persistence helpers (unchanged) -----
+// ----- Persistence helpers -----
 const PROFILES_STORAGE_KEY = 'brainspace_profiles';
 
 const loadProfilesFromStorage = () => {
@@ -70,7 +70,7 @@ export const TilesProvider = ({ children }) => {
     ? DefaultLandingPage.tiles 
     : [];
 
-  // Initialise from DefaultLandingPage (migrate if needed)
+  // Initialise from DefaultLandingPage
   const [gridRows, setGridRows] = useState(DefaultLandingPage.gridRows || DefaultLandingPage.gridSize || 3);
   const [gridCols, setGridCols] = useState(DefaultLandingPage.gridCols || DefaultLandingPage.gridSize || 3);
   const [tiles, setTiles] = useState(DefaultLandingPage.tiles);
@@ -78,7 +78,38 @@ export const TilesProvider = ({ children }) => {
   const [bgColor, setBgColor] = useState(DefaultLandingPage.bgColor);
   const [accentColor, setAccentColor] = useState(DefaultLandingPage.accentColor);
 
-  // LocalStorage‑based profiles
+  // ----- Background state -----
+  const [backgroundType, setBackgroundType] = useState(DefaultLandingPage.backgroundType || 'none');
+  const [backgroundValue, setBackgroundValue] = useState(DefaultLandingPage.backgroundValue || '');
+  const [backgroundOpacity, setBackgroundOpacity] = useState(DefaultLandingPage.backgroundOpacity ?? 0.3);
+  const [backgroundMuted, setBackgroundMuted] = useState(DefaultLandingPage.backgroundMuted ?? true);
+
+  // Wrapped setters (no logging)
+  const handleSetBackgroundType = useCallback((type) => {
+    setBackgroundType(type);
+  }, []);
+
+  const handleSetBackgroundValue = useCallback((value) => {
+    setBackgroundValue(value);
+  }, []);
+
+  const handleSetBackgroundOpacity = useCallback((opacity) => {
+    setBackgroundOpacity(opacity);
+  }, []);
+
+  const handleSetBackgroundMuted = useCallback((muted) => {
+    setBackgroundMuted(muted);
+  }, []);
+
+  // Unified update helper (no logging)
+  const updateBackground = useCallback((updates) => {
+    if (updates.type !== undefined) setBackgroundType(updates.type);
+    if (updates.value !== undefined) setBackgroundValue(updates.value);
+    if (updates.opacity !== undefined) setBackgroundOpacity(updates.opacity);
+    if (updates.muted !== undefined) setBackgroundMuted(updates.muted);
+  }, []);
+
+  // ----- LocalStorage‑based profiles -----
   const [profiles, setProfiles] = useState(loadProfilesFromStorage);
   const [activeProfileId, setActiveProfileId] = useState(null);
 
@@ -192,14 +223,18 @@ export const TilesProvider = ({ children }) => {
     }));
   }, []);
 
-  // ----- Profile helpers (update to handle rows/cols) -----
+  // ----- Profile helpers (including background state) -----
   const createSnapshot = useCallback(() => ({
     tiles,
     gridRows,
     gridCols,
     bgColor,
     accentColor,
-  }), [tiles, gridRows, gridCols, bgColor, accentColor]);
+    backgroundType,
+    backgroundValue,
+    backgroundOpacity,
+    backgroundMuted,
+  }), [tiles, gridRows, gridCols, bgColor, accentColor, backgroundType, backgroundValue, backgroundOpacity, backgroundMuted]);
 
   const copyCurrentProfile = useCallback(() => {
     const name = window.prompt('Profile name:', 'Copy of current');
@@ -213,6 +248,10 @@ export const TilesProvider = ({ children }) => {
       gridCols: snapshot.gridCols,
       bgColor: snapshot.bgColor,
       accentColor: snapshot.accentColor,
+      backgroundType: snapshot.backgroundType,
+      backgroundValue: snapshot.backgroundValue,
+      backgroundOpacity: snapshot.backgroundOpacity,
+      backgroundMuted: snapshot.backgroundMuted,
       createdAt: Date.now(),
     };
     setProfiles(prev => [...prev, newProfile]);
@@ -225,7 +264,6 @@ export const TilesProvider = ({ children }) => {
       return;
     }
     setTiles(profile.tiles);
-    // Handle legacy gridSize vs new rows/cols
     if (profile.gridRows !== undefined && profile.gridCols !== undefined) {
       setGridRows(profile.gridRows);
       setGridCols(profile.gridCols);
@@ -258,6 +296,11 @@ export const TilesProvider = ({ children }) => {
       setAccentColor(DefaultLandingPage.accentColor);
     }
 
+    setBackgroundType(profile.backgroundType || 'none');
+    setBackgroundValue(profile.backgroundValue || '');
+    setBackgroundOpacity(profile.backgroundOpacity ?? 0.3);
+    setBackgroundMuted(profile.backgroundMuted ?? true);
+
     setActiveProfileId(profile.id);
   }, []);
 
@@ -280,6 +323,10 @@ export const TilesProvider = ({ children }) => {
       gridCols: snapshot.gridCols,
       bgColor: snapshot.bgColor,
       accentColor: snapshot.accentColor,
+      backgroundType: snapshot.backgroundType,
+      backgroundValue: snapshot.backgroundValue,
+      backgroundOpacity: snapshot.backgroundOpacity,
+      backgroundMuted: snapshot.backgroundMuted,
     };
     const fileContent = `// Exported BrainSpace profile: ${profileData.name}
 const profile = ${JSON.stringify(profileData, null, 2)};
@@ -316,6 +363,10 @@ export default profile;
         const newProfile = {
           ...profile,
           id: Date.now(),
+          backgroundType: profile.backgroundType || 'none',
+          backgroundValue: profile.backgroundValue || '',
+          backgroundOpacity: profile.backgroundOpacity ?? 0.3,
+          backgroundMuted: profile.backgroundMuted ?? true,
         };
         setProfiles(prev => [...prev, newProfile]);
         loadProfile(newProfile);
@@ -350,6 +401,16 @@ export default profile;
     deleteProfile,
     exportProfile,
     importProfileFromFile,
+    // Background exports
+    backgroundType,
+    backgroundValue,
+    backgroundOpacity,
+    backgroundMuted,
+    setBackgroundType: handleSetBackgroundType,
+    setBackgroundValue: handleSetBackgroundValue,
+    setBackgroundOpacity: handleSetBackgroundOpacity,
+    setBackgroundMuted: handleSetBackgroundMuted,
+    updateBackground,
   };
 
   return (

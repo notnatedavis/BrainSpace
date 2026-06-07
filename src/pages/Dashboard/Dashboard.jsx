@@ -1,4 +1,4 @@
-//   src/pages/Dashboard/Dashboard.jsx
+// src/pages/Dashboard/Dashboard.jsx
 
 // ----- Imports -----
 import React, { useContext, useEffect } from 'react';
@@ -6,6 +6,7 @@ import Header from '../../components/Header/Header';
 import Sidebar from '../../components/Sidebar/Sidebar';
 import TileContainer from '../../components/TileContainer/TileContainer';
 import TileEditModal from '../../components/common/TileEditModal';
+import Background from '../../components/Background/Background';
 import { TilesContext } from '../../context/TilesContext';
 import { hslToString } from '../../utils/colorUtils';
 import './Dashboard.css';
@@ -24,6 +25,7 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard">
+      <Background />
       <Header />
       <div className="dashboard-main">
         <Sidebar />
