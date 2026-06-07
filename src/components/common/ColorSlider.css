@@ -36,7 +36,7 @@
   appearance: none;
   width: 16px;
   height: 16px;
-  margin-top: -5px;          /* centres the 16px thumb on the 6px track */
+  margin-top: -5px; /* centres the 16px thumb on the 6px track */
   border-radius: 50%;
   border: 2px solid var(--color-border);
   background-color: var(--thumb-color);

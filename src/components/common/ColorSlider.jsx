@@ -29,7 +29,7 @@ const ColorSlider = ({ label, hue, setHue, hideLabel = false }) => {
     setHue(Number(e.target.value));
   };
 
-  // Vibrant gradient with white on the left, full‑saturation hues, black on the right
+  // gradient w/ white, full‑saturation hues, black
   const spectrumGradient = `linear-gradient(
     to right,
     #ffffff 0%,

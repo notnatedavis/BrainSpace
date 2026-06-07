@@ -3,6 +3,9 @@
 # To Do :
 
 - research and document pinterest retrieval method
+- new Clock tileType/
+    - multiple formats ex. Flip Clock, Hands, Fonts, Italics, Bold, etc. 
+- new Clock tileType/
 - new Spotify tileType/
     - import url to playlist allows ability to shuffle play skip stop rewind (for now future features added later)
     - rough prototype functionality > aesthetics (later)
