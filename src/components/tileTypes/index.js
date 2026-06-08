@@ -8,6 +8,7 @@ import TimerTileDef from './TimerTile';
 import BoardTileDef from './BoardTile';
 import YoutubeTileDef from './YoutubeTile';
 import CalendarTileDef from './CalendarTile';
+import ClockTileDef from './ClockTile';
 
 // ----- Main -----
 const tileTypes = {
@@ -18,6 +19,7 @@ const tileTypes = {
   board: BoardTileDef,
   youtube: YoutubeTileDef,
   calendar: CalendarTileDef,
-}
+  clock: ClockTileDef,
+};
 
 export default tileTypes;

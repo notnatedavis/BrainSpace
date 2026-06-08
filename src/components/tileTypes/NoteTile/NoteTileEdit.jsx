@@ -1,69 +1,192 @@
-//   src/components/tileTypes/NoteTile/NoteTileEdit.jsx
+// src/components/tileTypes/NoteTile/NoteTileEdit.jsx
+// Full edit UI for NoteTile – rendered inside TileEditModal.
+// Background matches note's current hue; only essential controls are shown.
 
-// ----- Imports -----
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ColorSlider from '../../common/ColorSlider';
+
+// ----- Helpers -----
+const getCurrentFontSize = (editorRef) => {
+  const selection = window.getSelection();
+  if (!selection.rangeCount || !editorRef.current) return 16;
+  const range = selection.getRangeAt(0);
+  let node = range.startContainer;
+  if (range.collapsed && node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  else if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+  if (node && node.nodeType === Node.ELEMENT_NODE) {
+    const fontSize = window.getComputedStyle(node).fontSize;
+    return parseFloat(fontSize) || 16;
+  }
+  return 16;
+};
+
+const applyFontSize = (editorRef, deltaPx) => {
+  const selection = window.getSelection();
+  if (!selection.rangeCount || !editorRef.current) return;
+  const editor = editorRef.current;
+  const currentSize = getCurrentFontSize(editorRef);
+  const newSize = Math.max(6, currentSize + deltaPx);
+  editor.focus();
+  document.execCommand('styleWithCSS', true, null);
+  const range = selection.getRangeAt(0);
+  if (range.collapsed) {
+    let node = range.startContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    if (node && node.nodeType === Node.ELEMENT_NODE && node !== editor) {
+      node.style.fontSize = newSize + 'px';
+    } else {
+      editor.style.fontSize = newSize + 'px';
+    }
+  } else {
+    const extractedContent = range.extractContents();
+    const wrapper = document.createElement('span');
+    wrapper.style.fontSize = newSize + 'px';
+    wrapper.appendChild(extractedContent);
+    range.insertNode(wrapper);
+    selection.removeAllRanges();
+    const newRange = document.createRange();
+    newRange.selectNodeContents(wrapper);
+    selection.addRange(newRange);
+  }
+};
+
+const insertCheckboxAtLineStart = (editorRef) => {
+  if (!editorRef.current) return;
+  editorRef.current.focus();
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  let startContainer = range.startContainer;
+  if (startContainer.nodeType === Node.TEXT_NODE) startContainer = startContainer.parentElement;
+  let block = startContainer;
+  while (block && block !== editorRef.current) {
+    if (block.nodeName === 'DIV' || block.nodeName === 'P' ||
+        (block.parentNode === editorRef.current && block.nodeName !== 'SPAN')) break;
+    block = block.parentElement;
+  }
+  if (!block || block === editorRef.current) {
+    block = editorRef.current.firstChild || editorRef.current;
+    if (block.nodeType !== Node.ELEMENT_NODE) {
+      const newDiv = document.createElement('div');
+      editorRef.current.appendChild(newDiv);
+      block = newDiv;
+    }
+  }
+  const innerHtml = block.innerHTML;
+  if (innerHtml.trimStart().startsWith('<input type="checkbox" class="note-checkbox"')) return;
+  const uniqueId = `cb_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+  const checkboxHtml = `<input type="checkbox" class="note-checkbox" data-id="${uniqueId}"> `;
+  block.innerHTML = checkboxHtml + innerHtml;
+  const newRange = document.createRange();
+  const textNodeAfter = block.firstChild.nextSibling;
+  if (textNodeAfter && textNodeAfter.nodeType === Node.TEXT_NODE) {
+    newRange.setStart(textNodeAfter, 0);
+  } else {
+    newRange.setStart(block, 1);
+  }
+  newRange.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(newRange);
+};
+
+const getBackgroundFromHue = (hue) => {
+  if (hue <= 5) return '#ffffff';
+  if (hue >= 355) return '#000000';
+  return `hsl(${hue}, 70%, 92%)`;
+};
 
 // ----- Main -----
 const NoteTileEdit = ({ tile, onSave }) => {
-  const [title, setTitle] = useState(tile.title || '');
   const [content, setContent] = useState(tile.content || '');
   const [noteStyle, setNoteStyle] = useState(
     tile.noteStyle || {
-      backgroundColor: '#ffffff',
       bold: false,
       italic: false,
       underline: false,
-      fontSize: 'medium',
       fontFamily: 'sans',
-      headerLevel: 0,
+      bgHue: 0,
     }
   );
+  const [bgHue, setBgHue] = useState(tile.noteStyle?.bgHue ?? 0);
+  const editorRef = useRef(null);
+
+  // Populate editor when content changes
+  useEffect(() => {
+    if (editorRef.current) editorRef.current.innerHTML = content;
+  }, [content]);
 
   const updateStyle = (key, value) => {
     setNoteStyle((prev) => ({ ...prev, [key]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave({ title, content, noteStyle });
+  const handleSave = () => {
+    const html = editorRef.current ? editorRef.current.innerHTML : content;
+    const computedBgColor = getBackgroundFromHue(bgHue);
+    // Save only the fields we use (title removed, fontSize/headerLevel omitted)
+    onSave({
+      content: html,
+      noteStyle: {
+        bold: noteStyle.bold,
+        italic: noteStyle.italic,
+        underline: noteStyle.underline,
+        fontFamily: noteStyle.fontFamily,
+        bgHue,
+        backgroundColor: computedBgColor,
+      },
+      title: '', // title is hidden in the UI, keep empty
+    });
   };
 
-  // inline styles for consistent form elements
-  const formGroupStyle = {
+  // Formatting actions
+  const applyBold = () => editorRef.current && document.execCommand('bold', false, null);
+  const applyItalic = () => editorRef.current && document.execCommand('italic', false, null);
+  const applyUnderline = () => editorRef.current && document.execCommand('underline', false, null);
+  const applyStrikethrough = () => editorRef.current && document.execCommand('strikeThrough', false, null);
+  const handleInsertCheckbox = () => insertCheckboxAtLineStart(editorRef);
+  const increaseFont = () => applyFontSize(editorRef, 1);
+  const decreaseFont = () => applyFontSize(editorRef, -1);
+
+  // Background colour for the edit window
+  const editWindowBackground = getBackgroundFromHue(bgHue);
+
+  // Inline styles (consistent with other edit modals)
+  const formStyle = {
     display: 'flex',
     flexDirection: 'column',
-    gap: '0.5rem',
-    marginBottom: '1rem',
+    gap: '1rem',
+    width: '100%',
+    backgroundColor: editWindowBackground,
+    borderRadius: 'var(--border-radius)',
+    padding: '0.5rem',
+  };
+
+  const toolbarButtonStyle = {
+    padding: '0.2rem 0.6rem',
+    border: '1px solid var(--color-border)',
+    borderRadius: '4px',
+    background: 'transparent',
+    cursor: 'pointer',
+    fontSize: '0.875rem',
   };
 
   const labelStyle = {
     fontWeight: '500',
-    color: 'var(--color-text)',
+    fontSize: '0.875rem',
+    color: 'var(--color-text-light)',
+    marginBottom: '0.25rem',
+    display: 'block',
   };
 
-  const inputStyle = {
+  const selectStyle = {
     padding: '0.5rem',
     borderRadius: '6px',
     border: '1px solid var(--color-border)',
     fontSize: 'var(--font-size-base)',
     fontFamily: 'inherit',
-  };
-
-  const textareaStyle = {
-    ...inputStyle,
-    resize: 'vertical',
-    minHeight: '80px',
-  };
-
-  const selectStyle = {
-    ...inputStyle,
     backgroundColor: 'var(--color-surface)',
-  };
-
-  const checkboxGroupStyle = {
-    display: 'flex',
-    gap: '1rem',
-    flexWrap: 'wrap',
+    color: 'var(--color-text)',
+    outline: 'none',
+    width: '100%',
   };
 
   const buttonStyle = {
@@ -75,130 +198,64 @@ const NoteTileEdit = ({ tile, onSave }) => {
     cursor: 'pointer',
     fontSize: 'var(--font-size-base)',
     fontWeight: '500',
-    marginTop: '0.5rem',
     transition: 'background-color 0.2s',
+    alignSelf: 'flex-end',
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      {/* Title field */}
-      <div style={formGroupStyle}>
-        <label style={labelStyle}>Title:</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          style={inputStyle}
-          placeholder="Note title"
-        />
+    <div style={formStyle}>
+      {/* Toolbar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <button type="button" onClick={applyBold} style={toolbarButtonStyle}>B</button>
+        <button type="button" onClick={applyItalic} style={toolbarButtonStyle}>I</button>
+        <button type="button" onClick={applyUnderline} style={toolbarButtonStyle}>U</button>
+        <button type="button" onClick={applyStrikethrough} style={toolbarButtonStyle}>S</button>
+        <button type="button" onClick={decreaseFont} style={toolbarButtonStyle}>−</button>
+        <button type="button" onClick={increaseFont} style={toolbarButtonStyle}>+</button>
+        <button type="button" onClick={handleInsertCheckbox} style={toolbarButtonStyle}>☐</button>
       </div>
 
-      {/* Content field */}
-      <div style={formGroupStyle}>
-        <label style={labelStyle}>Content:</label>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows="4"
-          style={textareaStyle}
-          placeholder="Write your note here..."
-        />
-      </div>
+      {/* Editable content area */}
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        style={{
+          border: '1px solid var(--color-border)',
+          borderRadius: '6px',
+          padding: '0.5rem',
+          minHeight: '150px',
+          maxHeight: '300px',
+          overflowY: 'auto',
+          fontFamily: 'inherit',
+          fontSize: '1rem',
+          backgroundColor: 'var(--color-surface)',
+          outline: 'none',
+        }}
+      />
 
-      {/* Background color */}
-      <div style={formGroupStyle}>
-        <label style={labelStyle}>Background Color:</label>
+      {/* Background hue slider */}
+      <ColorSlider label="Background Hue" hue={bgHue} setHue={setBgHue} />
+
+      {/* Font family dropdown */}
+      <div>
+        <label style={labelStyle}>Font Family</label>
         <select
-          value={noteStyle.backgroundColor}
-          onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+          value={noteStyle.fontFamily}
+          onChange={(e) => updateStyle('fontFamily', e.target.value)}
           style={selectStyle}
         >
-          <option value="#ffffff">White</option>
-          <option value="#ffcccc">Light Red</option>
-          <option value="#ccccff">Light Blue</option>
-          <option value="#ccffcc">Light Green</option>
-          <option value="#ffffcc">Light Yellow</option>
+          <option value="sans">Sans-serif</option>
+          <option value="serif">Serif</option>
+          <option value="mono">Monospace</option>
         </select>
       </div>
 
-      {/* Text formatting (bold, italic, underline) */}
-      <div style={formGroupStyle}>
-        <label style={labelStyle}>Text Style:</label>
-        <div style={checkboxGroupStyle}>
-          <label>
-            <input
-              type="checkbox"
-              checked={noteStyle.bold}
-              onChange={(e) => updateStyle('bold', e.target.checked)}
-            />{' '}
-            Bold
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={noteStyle.italic}
-              onChange={(e) => updateStyle('italic', e.target.checked)}
-            />{' '}
-            Italic
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={noteStyle.underline}
-              onChange={(e) => updateStyle('underline', e.target.checked)}
-            />{' '}
-            Underline
-          </label>
-        </div>
-      </div>
-
-      {/* Font size and family in a two-column layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div style={formGroupStyle}>
-          <label style={labelStyle}>Font Size:</label>
-          <select
-            value={noteStyle.fontSize}
-            onChange={(e) => updateStyle('fontSize', e.target.value)}
-            style={selectStyle}
-          >
-            <option value="small">Small</option>
-            <option value="medium">Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </div>
-        <div style={formGroupStyle}>
-          <label style={labelStyle}>Font Family:</label>
-          <select
-            value={noteStyle.fontFamily}
-            onChange={(e) => updateStyle('fontFamily', e.target.value)}
-            style={selectStyle}
-          >
-            <option value="sans">Sans-serif</option>
-            <option value="serif">Serif</option>
-            <option value="mono">Monospace</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Header level */}
-      <div style={formGroupStyle}>
-        <label style={labelStyle}>Header Level:</label>
-        <select
-          value={noteStyle.headerLevel}
-          onChange={(e) => updateStyle('headerLevel', parseInt(e.target.value))}
-          style={selectStyle}
-        >
-          <option value={0}>None (normal text)</option>
-          <option value={1}>Heading 1</option>
-          <option value={2}>Heading 2</option>
-          <option value={3}>Heading 3</option>
-        </select>
-      </div>
-
-      <button type="submit" style={buttonStyle}>
+      {/* Save button */}
+      <button type="button" onClick={handleSave} style={buttonStyle}>
         Save Note
       </button>
-    </form>
+    </div>
   );
 };
 

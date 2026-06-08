@@ -36,6 +36,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
   const isBoardWithImage = tile.type === 'board' && tile.pinImageUrl;
   const isYoutubeWithUrl = tile.type === 'youtube' && tile.url;
   const isCalendarTile = tile.type === 'calendar';
+  const isTimerTile = tile.type === 'timer'; // suppress title for timer by default
 
   const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${isImageWithContent ? 'image-tile-filled' : ''} ${isNoteTile ? 'note-tile' : ''} ${isBoardWithImage ? 'board-tile-filled' : ''} ${isYoutubeWithUrl ? 'youtube-tile-filled' : ''}`;
 
@@ -177,7 +178,8 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
         isNoteTile ||
         isBoardWithImage ||
         isYoutubeWithUrl ||
-        isCalendarTile
+        isCalendarTile ||
+        isTimerTile
       ) && <h3 className="tile-title">{tile.title}</h3>}
 
       <div className="tile-content" onClick={handleContentClick}>

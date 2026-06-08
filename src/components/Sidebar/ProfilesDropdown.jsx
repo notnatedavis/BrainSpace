@@ -160,7 +160,7 @@ const ProfilesDropdown = () => {
           onClick={handleExport}
           role="menuitem"
         >
-          📥 Export current as file
+          📥 Save as file
         </button>
 
         <button
@@ -168,7 +168,7 @@ const ProfilesDropdown = () => {
           onClick={handleImport}
           role="menuitem"
         >
-          📤 Import profile from file
+          📤 Open from file
         </button>
 
         {/* ---- Demo Profiles ---- */}

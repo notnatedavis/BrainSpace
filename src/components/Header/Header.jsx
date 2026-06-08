@@ -4,11 +4,12 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { TilesContext } from '../../context/TilesContext';
 import tileTypes from '../tileTypes'; // for display names
+import { hslToString } from '../../utils/colorUtils';
 import './Header.css';
 
 // ----- Main -----
 const Header = () => {
-  const { addTile } = useContext(TilesContext);
+  const { addTile, accentColor } = useContext(TilesContext);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
@@ -35,11 +36,16 @@ const Header = () => {
     displayName: def.displayName,
   }));
 
+  // Convert the dynamic accent colour to CSS string
+  const accentColorStr = hslToString(accentColor);
+
   return (
     <header className="header">
       <h1>
         <span className="title-brain">Brain</span>
-        <span className="title-space">Space</span>
+        <span className="title-space" style={{ color: accentColorStr }}>
+          Space
+        </span>
       </h1>
       <div className="dropdown-container">
         <button
