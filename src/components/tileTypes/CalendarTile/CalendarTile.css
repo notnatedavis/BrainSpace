@@ -12,7 +12,8 @@
   border-radius: var(--border-radius);
   box-sizing: border-box;
   overflow: hidden;
-  font-size: clamp(0.3rem, 3cqi, 1.2rem);
+  /* Base font size scaled by --calendar-scale (default 1) */
+  font-size: calc(clamp(0.3rem, 3cqi, 1.2rem) * var(--calendar-scale, 1));
   color: var(--color-text);
 }
 
@@ -31,7 +32,6 @@
   white-space: nowrap;
 }
 
-/* BUTTON SIZE REDUCED BY 50% (was 1.8em, now 0.9em) */
 .calendar-nav-btn {
   width: 1.1em;
   height: 1.1em;
@@ -40,7 +40,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9em;      /* slightly smaller font for the symbol */
+  font-size: 0.9em;
   line-height: 1;
   color: #ffffff;
   cursor: pointer;
@@ -53,12 +53,11 @@
 }
 
 /* ========== WEEKDAYS & DAYS – ALIGNMENT CRITICAL SECTION ========== */
-/* Both grids must have identical column definitions and gap */
 .calendar-weekdays {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);   /* ← ALIGNMENT KEY 1 */
-  gap: 0.3em;                             /* ← ALIGNMENT KEY 2 (use em for stability) */
-  margin-bottom: 0em; /* I want this even less if possible */
+  grid-template-columns: repeat(7, 1fr);
+  gap: calc(0.3em * var(--calendar-scale, 1));
+  margin-bottom: 0em;
 }
 
 .calendar-weekday {
@@ -72,15 +71,14 @@
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);   /* ← ALIGNMENT KEY 1 (must match) */
-  gap: 0.3em;                             /* ← ALIGNMENT KEY 2 (must match) */
+  grid-template-columns: repeat(7, 1fr);
+  gap: calc(0.3em * var(--calendar-scale, 1));
   flex: 1;
   min-height: 0;
 }
 
 .calendar-day {
-  /* Remove aspect-ratio to avoid row height conflicts – use padding instead */
-  padding-top: 100%;      /* makes square relative to width */
+  padding-top: calc(100% * var(--calendar-scale, 1));
   position: relative;
   display: flex;
   align-items: center;
@@ -91,7 +89,6 @@
   cursor: default;
 }
 
-/* The actual number sits absolutely inside the padded square */
 .calendar-day > span {
   position: absolute;
   top: 0;
@@ -121,11 +118,10 @@
 }
 
 /* ========== MANUAL OVERRIDES FOR DIFFERENT TILE SIZES ========== */
-/* Adjust gaps and padding at specific container widths (tile width) */
 @container (min-width: 200px) and (max-width: 299px) {
   .calendar-weekdays,
   .calendar-grid {
-    gap: 0.2em;
+    gap: calc(0.2em * var(--calendar-scale, 1));
   }
   .calendar-day {
     font-size: 0.8em;
@@ -134,12 +130,12 @@
 @container (min-width: 300px) and (max-width: 399px) {
   .calendar-weekdays,
   .calendar-grid {
-    gap: 0.25em;
+    gap: calc(0.25em * var(--calendar-scale, 1));
   }
 }
 @container (min-width: 400px) {
   .calendar-weekdays,
   .calendar-grid {
-    gap: 0.35em;
+    gap: calc(0.35em * var(--calendar-scale, 1));
   }
 }

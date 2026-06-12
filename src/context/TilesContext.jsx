@@ -77,6 +77,8 @@ export const TilesProvider = ({ children }) => {
   const [editingTileId, setEditingTileId] = useState(null);
   const [bgColor, setBgColor] = useState(DefaultLandingPage.bgColor);
   const [accentColor, setAccentColor] = useState(DefaultLandingPage.accentColor);
+  // NEW: border thickness for TileContainer outline
+  const [containerOutlineWidth, setContainerOutlineWidth] = useState(5); // default 5px
 
   // ----- Background state -----
   const [backgroundType, setBackgroundType] = useState(DefaultLandingPage.backgroundType || 'none');
@@ -223,7 +225,7 @@ export const TilesProvider = ({ children }) => {
     }));
   }, []);
 
-  // ----- Profile helpers (including background state) -----
+  // ----- Profile helpers (including background state and containerOutlineWidth) -----
   const createSnapshot = useCallback(() => ({
     tiles,
     gridRows,
@@ -234,7 +236,8 @@ export const TilesProvider = ({ children }) => {
     backgroundValue,
     backgroundOpacity,
     backgroundMuted,
-  }), [tiles, gridRows, gridCols, bgColor, accentColor, backgroundType, backgroundValue, backgroundOpacity, backgroundMuted]);
+    containerOutlineWidth,
+  }), [tiles, gridRows, gridCols, bgColor, accentColor, backgroundType, backgroundValue, backgroundOpacity, backgroundMuted, containerOutlineWidth]);
 
   const copyCurrentProfile = useCallback(() => {
     const name = window.prompt('Profile name:', 'Copy of current');
@@ -252,6 +255,7 @@ export const TilesProvider = ({ children }) => {
       backgroundValue: snapshot.backgroundValue,
       backgroundOpacity: snapshot.backgroundOpacity,
       backgroundMuted: snapshot.backgroundMuted,
+      containerOutlineWidth: snapshot.containerOutlineWidth,
       createdAt: Date.now(),
     };
     setProfiles(prev => [...prev, newProfile]);
@@ -300,6 +304,7 @@ export const TilesProvider = ({ children }) => {
     setBackgroundValue(profile.backgroundValue || '');
     setBackgroundOpacity(profile.backgroundOpacity ?? 0.3);
     setBackgroundMuted(profile.backgroundMuted ?? true);
+    setContainerOutlineWidth(profile.containerOutlineWidth ?? 5);
 
     setActiveProfileId(profile.id);
   }, []);
@@ -327,6 +332,7 @@ export const TilesProvider = ({ children }) => {
       backgroundValue: snapshot.backgroundValue,
       backgroundOpacity: snapshot.backgroundOpacity,
       backgroundMuted: snapshot.backgroundMuted,
+      containerOutlineWidth: snapshot.containerOutlineWidth,
     };
     const fileContent = `// Exported BrainSpace profile: ${profileData.name}
 const profile = ${JSON.stringify(profileData, null, 2)};
@@ -367,6 +373,7 @@ export default profile;
           backgroundValue: profile.backgroundValue || '',
           backgroundOpacity: profile.backgroundOpacity ?? 0.3,
           backgroundMuted: profile.backgroundMuted ?? true,
+          containerOutlineWidth: profile.containerOutlineWidth ?? 5,
         };
         setProfiles(prev => [...prev, newProfile]);
         loadProfile(newProfile);
@@ -411,6 +418,8 @@ export default profile;
     setBackgroundOpacity: handleSetBackgroundOpacity,
     setBackgroundMuted: handleSetBackgroundMuted,
     updateBackground,
+    containerOutlineWidth,
+    setContainerOutlineWidth,
   };
 
   return (

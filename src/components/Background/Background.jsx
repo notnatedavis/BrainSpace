@@ -11,12 +11,12 @@ import './Background.css';
 const Background = React.memo(() => {
   const { backgroundType, backgroundValue, backgroundOpacity, backgroundMuted } = useContext(TilesContext);
 
-  // No background active
+  // no background active
   if (backgroundType === 'none' || !backgroundValue) {
     return null;
   }
 
-  // ----- Static image (base64 data URL or external URL) -----
+  // ----- static image (base64 data URL or external URL) -----
   if (backgroundType === 'image') {
     return (
       <div className="background-container">
@@ -39,7 +39,7 @@ const Background = React.memo(() => {
       return null;
     }
 
-    // Build embed URL with autoplay, mute, loop, and playlist for seamless looping
+    // build embed URL w/ [autoplay, mute, loop, playlist] for seamless looping
     const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=${backgroundMuted ? 1 : 0}&loop=1&controls=0&playlist=${videoId}`;
 
     return (

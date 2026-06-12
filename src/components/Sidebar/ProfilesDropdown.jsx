@@ -4,7 +4,7 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
 import { createPortal } from 'react-dom';
 import { TilesContext } from '../../context/TilesContext';
-// Import the three new demo profiles
+// import the 3 demo profiles
 import DemoProfile1 from '../../data/DemoProfile1';
 import DemoProfile2 from '../../data/DemoProfile2';
 import DemoProfile3 from '../../data/DemoProfile3';
@@ -29,7 +29,7 @@ const ProfilesDropdown = () => {
   const menuRef = useRef(null);
   const portalContainerRef = useRef(null);
 
-  // ---- Create / destroy the portal container (unchanged) ----
+  // ---- Create / destroy the portal container ----
   useEffect(() => {
     const portalDiv = document.createElement('div');
     portalDiv.className = 'profiles-dropdown-portal';
@@ -42,7 +42,7 @@ const ProfilesDropdown = () => {
     };
   }, []);
 
-  // ---- Calculate menu position below the button when opening (unchanged) ----
+  // ---- Calculate menu position below the button when opening ----
   useEffect(() => {
     if (isOpen && buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
@@ -53,7 +53,7 @@ const ProfilesDropdown = () => {
     }
   }, [isOpen]);
 
-  // ---- Close dropdown when clicking outside (unchanged) ----
+  // ---- Close dropdown when clicking outside ----
   useEffect(() => {
     if (!isOpen) return;
 
@@ -72,7 +72,7 @@ const ProfilesDropdown = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // ---- Action handlers that also close the dropdown ----
+  // ---- Action handlers + close dropdown ----
   const handleCopy = () => {
     copyCurrentProfile();
     setIsOpen(false);
@@ -88,7 +88,7 @@ const ProfilesDropdown = () => {
     deleteProfile(id);
   };
 
-  // ------ Handlers for the Three Demo Profiles ------
+  // ------ Handlers for Profiles + Functions ------
   const handleLoadDemo1 = () => {
     loadProfile(DemoProfile1);
     setIsOpen(false);
@@ -154,7 +154,7 @@ const ProfilesDropdown = () => {
           </>
         )}
 
-        {/* ---- Export / Import actions ---- */}
+        {/* ---- Save / Open actions ---- */}
         <button
           className="profiles-dropdown-item"
           onClick={handleExport}

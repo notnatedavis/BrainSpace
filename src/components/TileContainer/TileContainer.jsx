@@ -11,8 +11,7 @@ import './TileContainer.css';
 
 // ----- Main -----
 const TileContainer = () => {
-  const { tiles, gridRows, gridCols, moveTile, removeTile, accentColor } = useContext(TilesContext);
-  // guard : if tiles is not an array, render nothing (prevents .map error)
+  const { tiles, gridRows, gridCols, moveTile, removeTile, accentColor, containerOutlineWidth } = useContext(TilesContext);
   if (!Array.isArray(tiles)) {
     console.error('TileContainer: tiles is not an array', tiles);
     return null;
@@ -51,9 +50,9 @@ const TileContainer = () => {
   const baseSize = 220;
   const scaleRows = 1 - (gridRows - 3) * 0.1;
   const scaleCols = 1 - (gridCols - 3) * 0.1;
-  const scale = Math.min(scaleRows, scaleCols); // keep tiles square and consistent
+  const scale = Math.min(scaleRows, scaleCols);
   const tileSize = Math.round(baseSize * scale);
-  const gap = 24; // must match --space-lg
+  const gap = 24;
 
   const gridStyle = {
     display: 'inline-grid',
@@ -63,6 +62,9 @@ const TileContainer = () => {
     overflow: 'visible',
     '--tile-scale': scale,
     position: 'relative',
+    // dynamic outline using context value
+    outline: `${containerOutlineWidth}px solid ${hslToString(accentColor)}`,
+    outlineOffset: '15px',
   };
 
   // ----- Compute style for the drop‑target indicator (pixel‑perfect alignment) -----

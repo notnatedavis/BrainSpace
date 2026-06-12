@@ -12,10 +12,11 @@ export default {
   component: CalendarTile,
   editComponent: CalendarTileEdit,
   defaultData: () => ({
-    title: 'Calendar',              // hidden in view, but keeps tile data consistent
+    title: 'Calendar',
     year: today.getFullYear(),
-    month: today.getMonth(),        // 0-indexed
+    month: today.getMonth(),
     backgroundColor: { h: 0, s: 0, l: 100 },
-    pinnedDate: null,               // ISO date string or null
+    pinnedDate: null,
+    scale: 1,
   }),
 };

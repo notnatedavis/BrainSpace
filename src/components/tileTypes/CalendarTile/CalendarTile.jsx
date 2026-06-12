@@ -21,9 +21,10 @@ const CalendarTile = ({ tile }) => {
   const today = new Date();
   const year = typeof tile.year === 'number' ? tile.year : today.getFullYear();
   const month = typeof tile.month === 'number' ? tile.month : today.getMonth();
+  const scale = typeof tile.scale === 'number' ? tile.scale : 1; // per‑tile zoom
 
   // Compute calendar grid data
-  const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+  const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const calendarDays = [];
@@ -82,15 +83,20 @@ const CalendarTile = ({ tile }) => {
     updateTile(tile.id, { month: newMonth, year: newYear });
   };
 
-  // Prevent tile click from opening edit modal
   const handleCalendarClick = (e) => {
     e.stopPropagation();
+  };
+
+  // Apply scale via CSS variable
+  const wrapperStyle = {
+    backgroundColor: bgColorStr,
+    '--calendar-scale': scale,
   };
 
   return (
     <div
       className="calendar-tile-wrapper"
-      style={{ backgroundColor: bgColorStr }}
+      style={wrapperStyle}
       onClick={handleCalendarClick}
     >
       {/* Navigation row */}
@@ -145,7 +151,7 @@ const CalendarTile = ({ tile }) => {
               className={`calendar-day${isToday ? ' today' : ''}${isPinned ? ' pinned' : ''}`}
               style={dayStyle}
             >
-              {day}
+              <span>{day}</span>
             </div>
           );
         })}

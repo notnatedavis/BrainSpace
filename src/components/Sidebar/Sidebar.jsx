@@ -8,7 +8,7 @@ import ProfilesDropdown from './ProfilesDropdown';
 import { extractYouTubeId } from '../../utils/youtubeUtils';
 import './Sidebar.css';
 
-// ----- Simple modal for YouTube URL input -----
+// ----- Simple modal for YouTube URL input (unchanged) -----
 const YoutubeUrlModal = ({ isOpen, onClose, onSetUrl }) => {
   const [url, setUrl] = useState('');
   const [error, setError] = useState('');
@@ -78,6 +78,8 @@ const Sidebar = () => {
     setBackgroundValue,
     backgroundOpacity,
     setBackgroundOpacity,
+    containerOutlineWidth,
+    setContainerOutlineWidth,
   } = useContext(TilesContext);
 
   // Hidden file input ref
@@ -102,13 +104,11 @@ const Sidebar = () => {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       alert('Please select an image file (JPEG, PNG, GIF, etc.)');
       return;
     }
 
-    // Warn about large GIFs (>5MB)
     if (file.size > 5 * 1024 * 1024) {
       if (!window.confirm('File is larger than 5MB. Large GIFs may impact performance. Continue?')) {
         return;
@@ -125,7 +125,6 @@ const Sidebar = () => {
       alert('Failed to read file. Please try again.');
     };
     reader.readAsDataURL(file);
-    // Reset input so same file can be re‑selected
     event.target.value = '';
   };
 
@@ -206,6 +205,20 @@ const Sidebar = () => {
         />
       </div>
       
+      {/* ---- Border thickness slider (NEW) ---- */}
+      <div className="sidebar-slider">
+        <label htmlFor="border-thickness">Border Thickness: {containerOutlineWidth}px</label>
+        <input
+          type="range"
+          id="border-thickness"
+          min="1"
+          max="20"
+          step="1"
+          value={containerOutlineWidth}
+          onChange={(e) => setContainerOutlineWidth(parseInt(e.target.value, 10))}
+        />
+      </div>
+
       {/* ---- Background opacity slider (visible only when background is active) ---- */}
       {backgroundType !== 'none' && (
         <div className="sidebar-slider">

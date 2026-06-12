@@ -10,6 +10,7 @@ const CalendarTileEdit = ({ tile, onSave }) => {
     tile.backgroundColor || { h: 0, s: 0, l: 100 }
   );
   const [pinnedDate, setPinnedDate] = useState(tile.pinnedDate || '');
+  const [scale, setScale] = useState(tile.scale ?? 1);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -17,13 +18,14 @@ const CalendarTileEdit = ({ tile, onSave }) => {
     if (pinnedDate.trim()) {
       const date = new Date(pinnedDate);
       if (!isNaN(date)) {
-        validPinned = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        validPinned = date.toISOString().split('T')[0];
       }
     }
     onSave({
       backgroundColor,
       pinnedDate: validPinned,
-      title: tile.title, // preserve existing title
+      scale: Math.min(1.5, Math.max(0.5, scale)),
+      title: tile.title,
     });
   };
 
@@ -50,6 +52,12 @@ const CalendarTileEdit = ({ tile, onSave }) => {
     color: 'var(--color-text)',
     outline: 'none',
     width: '100%',
+  };
+
+  const sliderStyle = {
+    ...inputStyle,
+    padding: 0,
+    accentColor: 'var(--color-accent)',
   };
 
   const buttonStyle = {
@@ -85,6 +93,23 @@ const CalendarTileEdit = ({ tile, onSave }) => {
           onChange={(e) => setPinnedDate(e.target.value)}
           style={inputStyle}
         />
+      </div>
+
+      {/* Zoom / scale slider */}
+      <div>
+        <label style={labelStyle}>Zoom level: {scale.toFixed(2)}x</label>
+        <input
+          type="range"
+          min="0.5"
+          max="1.5"
+          step="0.05"
+          value={scale}
+          onChange={(e) => setScale(parseFloat(e.target.value))}
+          style={sliderStyle}
+        />
+        <small style={{ color: 'var(--color-text-light)' }}>
+          Smaller = more content fits (e.g., for 1x1 tiles)
+        </small>
       </div>
 
       <button type="submit" style={buttonStyle}>

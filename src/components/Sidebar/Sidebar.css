@@ -37,7 +37,7 @@
 /* Slider styles – hidden when collapsed, visible on hover */
 .sidebar .sidebar-slider {
   padding: 0 var(--space-lg);
-  margin-top: var(--space-lg);
+  margin-top: var(--space-sm);  /* reduced from var(--space-lg) to tighten spacing */
   opacity: 0;
   transition: opacity 0.2s ease 0.1s;
   white-space: nowrap;

@@ -7,8 +7,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* Allow clicking through to dashboard elements */
-  z-index: -1; /* Behind everything (dashboard has default stacking) */
+  pointer-events: none; /* allow clicking through to dashboard elements */
+  z-index: -1;          /* behind everything (dashboard has default stacking) */
   overflow: hidden;
 }
 

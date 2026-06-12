@@ -1,7 +1,7 @@
 /*   src/components/TileContainer/TileContainer.css */
 
 .tile-container {
-  position: relative; /* ★ required so the absolute indicator is positioned correctly */
+  position: relative; /* required so the absolute indicator is positioned correctly */
   display: inline-grid; /* shrink‑wrap to content */
   gap: var(--space-lg);
   align-items: start;
@@ -9,8 +9,7 @@
   background: transparent;
   border-radius: var(--border-radius);
   margin: 0 auto;
-  outline: 5px solid var(--color-accent);
-  outline-offset: 15px;
+  /* outline moved to inline style for dynamic thickness */
 }
 
 /* Placeholder styling (unchanged) */

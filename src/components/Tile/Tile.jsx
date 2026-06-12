@@ -6,8 +6,8 @@ import tileTypes from '../tileTypes';
 import { TilesContext } from '../../context/TilesContext';
 import './Tile.css';
 
-// ----- Shrink margin : how many cells must the mouse travel inward before the tile snaps to a smaller size -----
-// Increase to make shrinking feel snappier (0.3 – 1.0 is practical; 0.0 = immediate, 1.0 = default full‑cell movement)
+// ----- Shrink margin : # cells the mouse travel inward before the tile snaps to a smaller size -----
+// increase to make shrinking feel snappier (0.3 – 1.0 is practical; 0.0 = immediate, 1.0 = default full‑cell movement)
 const SHRINK_MARGIN = 0.2; // cell units
 
 // ----- Main -----
