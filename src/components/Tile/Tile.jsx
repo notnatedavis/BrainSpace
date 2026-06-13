@@ -28,9 +28,11 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
 
   const handleContentClick = () => {
     if (tile.type === 'note') return;
+    if (tile.type === 'info') return;   // InfoTile read‑only
     setEditingTileId(tile.id);
   };
 
+  const isInfoTile = tile.type === 'info'
   const isImageWithContent = tile.type === 'image' && tile.content;
   const isNoteTile = tile.type === 'note';
   const isBoardWithImage = tile.type === 'board' && tile.pinImageUrl;
@@ -174,6 +176,7 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
       />
 
       {!( /* suppress titles for : */
+        isInfoTile ||
         isImageWithContent ||
         isNoteTile ||
         isBoardWithImage ||

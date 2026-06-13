@@ -1,11 +1,22 @@
 //   src/utils/pinterestApi.js
 //   Fetch public Pinterest board data via RSS feed.
-//   Uses Vite proxy in development, AllOrigins CORS proxy in production.
-//   Includes cache, exponential backoff, and stale‑cache fallback.
+//   Uses a Vite proxy (/pinterest-rss) in development.
+//   In production, falls back to a public CORS proxy (allorigins) because GitHub Pages cannot host a custom proxy.
+//   Now includes a short‑lived cache and exponential backoff
+//   so repeated calls (auto‑refresh) are gentle and resilient.
 
 import { logger } from './logger';
 
-// ----- Simple in‑memory cache -----
+// ----- Determine which fetch endpoint to use -----
+// In development, Vite proxies /pinterest-rss to Pinterest.
+// In production, we must use a public CORS proxy.
+const isDevelopment = import.meta.env.DEV;
+const PROXY_BASE = isDevelopment
+  ? '/pinterest-rss'
+  : 'https://api.allorigins.win/raw?url=';
+
+// ----- Simple in‑memory cache for the RSS data -----
+// cache entries expire after 2 minutes (120000 ms)
 const cache = new Map();
 const CACHE_TTL = 120000; // 2 min
 
@@ -23,10 +34,10 @@ const setCache = (key, data) => {
   cache.set(key, { data, timestamp: Date.now() });
 };
 
-// ----- Backoff helper -----
+// ----- Backoff helper for retrying after failures -----
 const retryTimers = new Map();
-const BACKOFF_BASE = 5000;
-const BACKOFF_MAX = 60000;
+const BACKOFF_BASE = 5000; // 5 seconds
+const BACKOFF_MAX = 60000; // 1 minute
 
 const shouldRetry = (key) => {
   const next = retryTimers.get(key) || 0;
@@ -43,7 +54,7 @@ const resetBackoff = (key) => {
   retryTimers.delete(key);
 };
 
-// ----- Parse board URL -----
+// ----- Helper: parse Pinterest board URL -----
 export const parseBoardUrl = (boardUrl) => {
   try {
     const url = new URL(boardUrl);
@@ -60,7 +71,7 @@ export const parseBoardUrl = (boardUrl) => {
   }
 };
 
-// ----- XML parsing helpers -----
+// ----- Helper: parse XML text into a Document -----
 const parseXML = (text) => {
   const parser = new DOMParser();
   const doc = parser.parseFromString(text, 'application/xml');
@@ -71,9 +82,11 @@ const parseXML = (text) => {
   return doc;
 };
 
+// ----- Helper: extract image URLs from RSS item descriptions -----
 const extractImageUrlsFromItem = (item) => {
   const descElement = item.querySelector('description');
   if (!descElement) return [];
+
   const htmlContent = descElement.textContent;
   const imgRegex = /<img[^>]+src="([^"]+)"/gi;
   const matches = [];
@@ -84,17 +97,20 @@ const extractImageUrlsFromItem = (item) => {
   return matches;
 };
 
-// ----- Production CORS proxy (AllOrigins) -----
-const fetchViaCorsProxy = async (url) => {
-  const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-  const response = await fetch(proxyUrl);
-  if (!response.ok) {
-    throw new Error(`CORS proxy returned ${response.status}`);
+// ----- Build the actual fetch URL (with or without proxy) -----
+const buildFetchUrl = (username, boardName) => {
+  const rssPath = `/${username}/${boardName}.rss`;
+  if (isDevelopment) {
+    // Use the Vite proxy
+    return `${PROXY_BASE}${rssPath}`;
+  } else {
+    // Use a public CORS proxy. Encode the full Pinterest RSS URL.
+    const fullPinterestUrl = `https://www.pinterest.com${rssPath}`;
+    return `${PROXY_BASE}${encodeURIComponent(fullPinterestUrl)}`;
   }
-  return response.text();
 };
 
-// ----- Main board data fetcher (production‑aware) -----
+// ----- Main board data fetcher (enhanced with cache & backoff & production proxy) -----
 export const fetchBoardData = async (boardUrl) => {
   logger.debug(`fetchBoardData called with URL: ${boardUrl}`);
 
@@ -104,15 +120,15 @@ export const fetchBoardData = async (boardUrl) => {
   }
   const { username, boardName } = parsed;
   const cacheKey = `${username}/${boardName}`;
-  const cached = getCached(cacheKey);
 
-  // 1) Return fresh cache if available
+  // 1) Return cached data if available and fresh
+  const cached = getCached(cacheKey);
   if (cached) {
     logger.debug(`Using cached data for "${cacheKey}"`);
     return cached;
   }
 
-  // 2) Respect backoff – if recently failed, serve stale cache or throw
+  // 2) Respect backoff – if recently failed, reuse expired cache or throw softly
   if (!shouldRetry(cacheKey)) {
     if (cached) {
       logger.debug(`Backoff active for "${cacheKey}", serving stale cache`);
@@ -122,29 +138,22 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error('Too many requests – cooling down');
   }
 
-  // 3) Construct absolute RSS URL
-  const rssUrl = `https://www.pinterest.com/${username}/${boardName}.rss`;
-  logger.debug(`RSS URL: ${rssUrl}`);
+  // 3) Build the fetch URL (development proxy or production CORS proxy)
+  const fetchUrl = buildFetchUrl(username, boardName);
+  logger.debug(`Fetching RSS feed from: ${fetchUrl}`);
 
-  let xmlText;
+  let response;
   try {
-    // Decide fetch method based on environment
-    if (import.meta.env.PROD) {
-      logger.debug('Production environment – using CORS proxy (AllOrigins)');
-      xmlText = await fetchViaCorsProxy(rssUrl);
-    } else {
-      logger.debug('Development environment – using Vite proxy');
-      const proxyUrl = `/pinterest-rss/${username}/${boardName}.rss`;
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
-      const response = await fetch(proxyUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      xmlText = await response.text();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 s timeout
+
+    response = await fetch(fetchUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    logger.debug(`RSS response status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    logger.debug(`RSS feed length: ${xmlText.length} characters`);
   } catch (err) {
     logger.error('Failed to fetch RSS feed:', err);
     recordFailure(cacheKey);
@@ -155,7 +164,19 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error(`Unable to load board RSS feed: ${err.message}`);
   }
 
-  // 4) Parse XML
+  // 4) Get response text (allorigins returns the raw RSS, but may wrap in JSON? Actually allorigins.win/raw?url= returns the raw content)
+  let xmlText;
+  try {
+    xmlText = await response.text();
+    logger.debug(`RSS feed length: ${xmlText.length} characters`);
+  } catch (err) {
+    logger.error('Failed to read response text:', err);
+    recordFailure(cacheKey);
+    if (cached) return cached;
+    throw new Error('Failed to read board data');
+  }
+
+  // 5) Parse XML
   let doc;
   try {
     doc = parseXML(xmlText);
@@ -200,13 +221,14 @@ export const fetchBoardData = async (boardUrl) => {
 
   const result = { title: boardTitle, pinImages };
 
+  // 6) Cache successful response + reset backoff
   setCache(cacheKey, result);
   resetBackoff(cacheKey);
 
   return result;
 };
 
-// ----- Random image selector (unchanged) -----
+// ----- Random image selector -----
 export const getRandomPinImage = (pinImages) => {
   const randomIndex = Math.floor(Math.random() * pinImages.length);
   return pinImages[randomIndex];

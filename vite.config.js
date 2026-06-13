@@ -8,7 +8,7 @@ import path from 'path';
 
 // ----- Main -----
 export default defineConfig({
-  // Set base path for GitHub Pages deployment (repo name: BrainSpace)
+  // Base path for GitHub Pages (repository name is 'BrainSpace')
   base: '/BrainSpace/',
   plugins: [react()],
   resolve: {
@@ -41,7 +41,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'docs',
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true
   }
