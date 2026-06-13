@@ -2,23 +2,19 @@
 //   Fetch public Pinterest board data via RSS feed.
 //   Uses a Vite proxy (/pinterest-rss) in development.
 //   In production, falls back to a public CORS proxy (allorigins) because GitHub Pages cannot host a custom proxy.
-//   Now includes a short‑lived cache and exponential backoff
-//   so repeated calls (auto‑refresh) are gentle and resilient.
+//   Includes sanitization of invalid XML characters, caching, and exponential backoff.
 
 import { logger } from './logger';
 
 // ----- Determine which fetch endpoint to use -----
-// In development, Vite proxies /pinterest-rss to Pinterest.
-// In production, we must use a public CORS proxy.
 const isDevelopment = import.meta.env.DEV;
 const PROXY_BASE = isDevelopment
   ? '/pinterest-rss'
   : 'https://api.allorigins.win/raw?url=';
 
 // ----- Simple in‑memory cache for the RSS data -----
-// cache entries expire after 2 minutes (120000 ms)
 const cache = new Map();
-const CACHE_TTL = 120000; // 2 min
+const CACHE_TTL = 120000; // 2 minutes
 
 const getCached = (key) => {
   const entry = cache.get(key);
@@ -54,6 +50,14 @@ const resetBackoff = (key) => {
   retryTimers.delete(key);
 };
 
+// ----- Sanitize XML string: remove control characters except allowed ones -----
+// Allowed XML 1.0 characters: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+const sanitizeXml = (text) => {
+  // Replace invalid characters with a space (or could remove them)
+  // eslint-disable-next-line no-control-regex
+  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ' ');
+};
+
 // ----- Helper: parse Pinterest board URL -----
 export const parseBoardUrl = (boardUrl) => {
   try {
@@ -74,10 +78,14 @@ export const parseBoardUrl = (boardUrl) => {
 // ----- Helper: parse XML text into a Document -----
 const parseXML = (text) => {
   const parser = new DOMParser();
-  const doc = parser.parseFromString(text, 'application/xml');
+  // Sanitize before parsing to avoid invalid character errors
+  const sanitized = sanitizeXml(text);
+  const doc = parser.parseFromString(sanitized, 'application/xml');
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    throw new Error(`XML parse error: ${errorNode.textContent}`);
+    // Attempt to extract more info
+    const errorMsg = errorNode.textContent || 'Unknown XML parsing error';
+    throw new Error(`XML parse error: ${errorMsg.substring(0, 150)}`);
   }
   return doc;
 };
@@ -101,16 +109,14 @@ const extractImageUrlsFromItem = (item) => {
 const buildFetchUrl = (username, boardName) => {
   const rssPath = `/${username}/${boardName}.rss`;
   if (isDevelopment) {
-    // Use the Vite proxy
     return `${PROXY_BASE}${rssPath}`;
   } else {
-    // Use a public CORS proxy. Encode the full Pinterest RSS URL.
     const fullPinterestUrl = `https://www.pinterest.com${rssPath}`;
     return `${PROXY_BASE}${encodeURIComponent(fullPinterestUrl)}`;
   }
 };
 
-// ----- Main board data fetcher (enhanced with cache & backoff & production proxy) -----
+// ----- Main board data fetcher with sanitization, cache, and backoff -----
 export const fetchBoardData = async (boardUrl) => {
   logger.debug(`fetchBoardData called with URL: ${boardUrl}`);
 
@@ -138,15 +144,13 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error('Too many requests – cooling down');
   }
 
-  // 3) Build the fetch URL (development proxy or production CORS proxy)
   const fetchUrl = buildFetchUrl(username, boardName);
   logger.debug(`Fetching RSS feed from: ${fetchUrl}`);
 
   let response;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 s timeout
-
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
     response = await fetch(fetchUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
@@ -164,7 +168,7 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error(`Unable to load board RSS feed: ${err.message}`);
   }
 
-  // 4) Get response text (allorigins returns the raw RSS, but may wrap in JSON? Actually allorigins.win/raw?url= returns the raw content)
+  // Get response text
   let xmlText;
   try {
     xmlText = await response.text();
@@ -176,7 +180,15 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error('Failed to read board data');
   }
 
-  // 5) Parse XML
+  // Check if the response might be an error HTML page (common with allorigins)
+  if (xmlText.trim().startsWith('<!DOCTYPE') || xmlText.includes('<html')) {
+    logger.warn('Received HTML instead of RSS – board may be private or invalid');
+    recordFailure(cacheKey);
+    if (cached) return cached;
+    throw new Error('Board is not accessible (may be private or invalid URL)');
+  }
+
+  // Parse XML with sanitization
   let doc;
   try {
     doc = parseXML(xmlText);
@@ -208,6 +220,7 @@ export const fetchBoardData = async (boardUrl) => {
     allImageUrls.push(...imgs);
   });
 
+  // Filter only pinimg.com URLs and deduplicate
   const pinImages = allImageUrls
     .filter(url => url.includes('pinimg.com'))
     .filter((url, idx, arr) => arr.indexOf(url) === idx);
@@ -221,7 +234,7 @@ export const fetchBoardData = async (boardUrl) => {
 
   const result = { title: boardTitle, pinImages };
 
-  // 6) Cache successful response + reset backoff
+  // Cache successful response and reset backoff
   setCache(cacheKey, result);
   resetBackoff(cacheKey);
 

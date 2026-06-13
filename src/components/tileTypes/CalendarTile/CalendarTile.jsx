@@ -122,10 +122,10 @@ const CalendarTile = ({ tile }) => {
         </button>
       </div>
 
-      {/* Weekday headers */}
+      {/* Weekday headers – fix duplicate keys by adding index */}
       <div className="calendar-weekdays">
-        {DAY_NAMES.map((name) => (
-          <div key={name} className="calendar-weekday">
+        {DAY_NAMES.map((name, idx) => (
+          <div key={`${name}-${idx}`} className="calendar-weekday">
             {name}
           </div>
         ))}

@@ -12,15 +12,6 @@ const InfoTile = () => {
     <div className="info-tile-content">
       <h3 className="info-title">Welcome to BrainSpace</h3>
       <div className="info-description">
-        <p>
-          Click <strong>+Add Tile</strong> to get started<br />
-          
-          Hover over the sidebar to add anything<br />
-          
-          Save profiles or open an existing layout<br />
-          
-          Enjoy your personalised dashboard!<br />
-        </p>
       </div>
     </div>
   );

@@ -1,118 +1,107 @@
-// src/data/DemoProfile2.js
-
+// Exported BrainSpace profile: Demo 2
 const profile = {
   "id": "exported",
-  "name": "DemoProfile2.js",
+  "name": "Demo 2",
   "tiles": [
     {
-      "id": 1779303571146,
+      "id": 1781385958391,
+      "type": "calendar",
+      "row": 3,
+      "col": 0,
+      "size": 1,
+      "title": "Calendar",
+      "year": 2026,
+      "month": 5,
+      "backgroundColor": {
+        "h": 0,
+        "s": 0,
+        "l": 100
+      },
+      "pinnedDate": null,
+      "scale": 1
+    },
+    {
+      "id": 1781385964892,
       "type": "board",
-      "row": 1,
+      "row": 3,
       "col": 3,
       "size": 1,
-      "title": "[organization boards]✂️✏️📎",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/organization-boards/",
-      "boardTitle": "[organization boards]✂️✏️📎",
-      "pinImageUrl": "https://i.pinimg.com/236x/05/62/47/056247ac13b409da6856b27f602daa48.jpg",
-      "lastUpdated": 1780409363174,
-      "autoRefreshInterval": 10
+      "title": "[posters]📸🧿🩻",
+      "boardUrl": "https://www.pinterest.com/davispereznathaniel/posters/",
+      "boardTitle": "[posters]📸🧿🩻",
+      "pinImageUrl": "https://i.pinimg.com/236x/11/df/4a/11df4a00642dfcc4bb6bae11beedc7a7.jpg",
+      "lastUpdated": 1781386124150,
+      "autoRefreshInterval": 20
     },
     {
-      "id": 1779303573009,
+      "id": 1781386011412,
       "type": "board",
       "row": 2,
-      "col": 2,
-      "size": 2,
-      "title": "[notes]📝",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/notes/",
-      "boardTitle": "[notes]📝",
-      "pinImageUrl": "https://i.pinimg.com/236x/c0/a5/72/c0a5723ff8008b0bbf6e54940868e63d.jpg",
-      "lastUpdated": 1780409363174,
-      "autoRefreshInterval": 10
+      "col": 3,
+      "size": 1,
+      "title": "[places]🏔️",
+      "boardUrl": "https://www.pinterest.com/davispereznathaniel/places/",
+      "boardTitle": "[places]🏔️",
+      "pinImageUrl": "https://i.pinimg.com/236x/53/9c/03/539c03e7497d95737229930645ca7984.jpg",
+      "lastUpdated": 1781386118519,
+      "autoRefreshInterval": 20
     },
     {
-      "id": 1779303577287,
-      "type": "timer",
+      "id": 1781386026572,
+      "type": "board",
       "row": 3,
+      "col": 2,
+      "size": 1,
+      "title": "[quotes]🗣️📗📝",
+      "boardUrl": "https://www.pinterest.com/davispereznathaniel/quotes/",
+      "boardTitle": "[quotes]🗣️📗📝",
+      "pinImageUrl": "https://i.pinimg.com/236x/35/b8/7c/35b87ce7e105c015fbb7bd38483006aa.jpg",
+      "lastUpdated": 1781386130437,
+      "autoRefreshInterval": 20
+    },
+    {
+      "id": 1781386037329,
+      "type": "clock",
+      "row": 0,
+      "col": 0,
+      "size": 1,
+      "displayMode": "flip",
+      "bold": true,
+      "italic": true,
+      "fontFamily": "sans",
+      "hourFormat": "12h"
+    },
+    {
+      "id": 1781386046015,
+      "type": "timer",
+      "row": 0,
       "col": 1,
       "size": 1,
       "title": "Pomo",
       "mode": "countdown",
-      "visualStyle": "circular",
-      "initialTime": 9000
+      "initialTime": 1800,
+      "visualStyle": "circular"
     },
     {
-      "id": 1779303625494,
-      "type": "note",
-      "row": 1,
-      "col": 0,
-      "size": 1,
-      "title": "",
-      "content": "<b><u>To Do</u></b> : ( ! ! )<div><i>- sign up for 5k</i></div><div><i>- Fidelity withdrawl</i></div>",
-      "noteStyle": {
-        "backgroundColor": "hsl(98, 70%, 92%)",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "fontSize": "medium",
-        "fontFamily": "sans",
-        "headerLevel": 0,
-        "bgHue": 98
-      }
-    },
-    {
-      "id": 1779303643037,
-      "type": "note",
-      "row": 2,
-      "col": 0,
-      "size": 1,
-      "title": "",
-      "content": "<span style=\"font-weight: bold; text-decoration-line: underline;\">To Do</span> : ( ! )<div>- <i>text grandparents</i></div><div><i>- meal prep</i></div><div><i>- stretch</i></div>",
-      "noteStyle": {
-        "backgroundColor": "hsl(197, 70%, 92%)",
-        "bold": false,
-        "italic": false,
-        "underline": false,
-        "fontSize": "medium",
-        "fontFamily": "sans",
-        "headerLevel": 0,
-        "bgHue": 197
-      }
-    },
-    {
-      "id": 1779303649385,
+      "id": 1781386092444,
       "type": "note",
       "row": 0,
-      "col": 0,
+      "col": 2,
       "size": 1,
       "title": "",
-      "content": "<b><u>To Do</u></b> : ( ! ! ! )<div><i>- call back insurance company</i></div><div><i>- schedule blood test with Quest</i></div>",
+      "content": "<span style=\"font-style: italic;\">at some point today I would love to dump my thoughts onto some notes, compose myself, and move forwards.</span>",
       "noteStyle": {
-        "backgroundColor": "hsl(20, 70%, 92%)",
         "bold": false,
         "italic": false,
         "underline": false,
-        "fontSize": "medium",
         "fontFamily": "sans",
-        "headerLevel": 0,
-        "bgHue": 20
+        "bgHue": 12,
+        "backgroundColor": "hsl(12, 70%, 92%)"
       }
-    },
-    {
-      "id": 1779303979265,
-      "type": "board",
-      "row": 0,
-      "col": 1,
-      "size": 2,
-      "title": "[plants]🌵🌱🪴",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/plants/",
-      "boardTitle": "[plants]🌵🌱🪴",
-      "pinImageUrl": "https://i.pinimg.com/236x/66/2e/1a/662e1ac8ec54b02d046185cf6579d649.jpg",
-      "lastUpdated": 1780409363174,
-      "autoRefreshInterval": 10
     }
   ],
-  "gridSize": 4,
+  "gridRows": 4,
+  "gridCols": 4,
   "bgColor": {
     "h": 49,
     "s": 24,
@@ -120,12 +109,13 @@ const profile = {
   },
   "accentColor": {
     "h": 53,
-    "s": 100,
+    "s": 65,
     "l": 34
   },
-  "backgroundType": "none",
-  "backgroundValue": "",
-  "backgroundOpacity": 0.3,
-  "backgroundMuted": true
+  "backgroundType": "youtube",
+  "backgroundValue": "https://www.youtube.com/watch?v=CBLobHhY0Gk",
+  "backgroundOpacity": 0.77,
+  "backgroundMuted": true,
+  "containerOutlineWidth": 8
 };
 export default profile;
