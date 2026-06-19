@@ -1,5 +1,6 @@
 // src/components/tileTypes/ClockTile/ClockTile.jsx
 // Displays current time as either a flip-style digital clock or an analog clock.
+// Optionally shows the current date above the time when `showDate` is true.
 
 // ----- Imports -----
 import React, { useState, useEffect, useRef, useContext } from 'react';
@@ -21,6 +22,24 @@ const formatTime = (date, hourFormat) => {
   // 24-hour format (default)
   hours = hours.toString().padStart(2, '0');
   return `${hours}:${minutes}:${seconds}`;
+};
+
+// ----- Helper: get ordinal suffix for a day number -----
+const getOrdinalSuffix = (day) => {
+  if (day > 3 && day < 21) return 'th'; // catch 11th, 12th, 13th
+  switch (day % 10) {
+    case 1: return 'st';
+    case 2: return 'nd';
+    case 3: return 'rd';
+    default: return 'th';
+  }
+};
+
+// ----- Helper: format date as "Thursday, 18th" -----
+const formatDate = (date) => {
+  const weekday = date.toLocaleDateString(undefined, { weekday: 'long' });
+  const day = date.getDate();
+  return `${weekday}, ${day}${getOrdinalSuffix(day)}`;
 };
 
 // ----- Helper: draw analog clock on canvas with hour numbers -----
@@ -99,7 +118,8 @@ const ClockTile = ({ tile }) => {
     bold = false,
     italic = false,
     fontFamily = 'monospace',
-    hourFormat = '24h', // '12h' or '24h'
+    hourFormat = '24h',
+    showDate = false, // new
   } = tile;
 
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -152,26 +172,48 @@ const ClockTile = ({ tile }) => {
   if (displayMode === 'flip') {
     const timeStr = formatTime(currentTime, hourFormat);
     // Font size scales with tile span (size) and overall grid scaling.
-    const fontSize = `calc(2.6rem * ${tile.size || 1} * var(--tile-scale, 1))`;
+    const timeFontSize = `calc(2.6rem * ${tile.size || 1} * var(--tile-scale, 1))`;
+    const dateFontSize = `calc(1.2rem * ${tile.size || 1} * var(--tile-scale, 1))`;
+
+    const textStyles = {
+      fontWeight: bold ? 'bold' : 'normal',
+      fontStyle: italic ? 'italic' : 'normal',
+      color: accentColorStr,
+      fontFamily: getFontFamily(),
+      textAlign: 'center',
+      lineHeight: 1.2,
+    };
 
     return (
       <div
         style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           height: '100%',
           width: '100%',
-          fontSize,
-          fontWeight: bold ? 'bold' : 'normal',
-          fontStyle: italic ? 'italic' : 'normal',
-          color: accentColorStr,
-          fontFamily: getFontFamily(),
-          textAlign: 'center',
-          lineHeight: 1.2,
         }}
       >
-        {timeStr}
+        {showDate && (
+          <div
+            style={{
+              ...textStyles,
+              fontSize: dateFontSize,
+              marginBottom: '0.25rem',
+            }}
+          >
+            {formatDate(currentTime)}
+          </div>
+        )}
+        <div
+          style={{
+            ...textStyles,
+            fontSize: timeFontSize,
+          }}
+        >
+          {timeStr}
+        </div>
       </div>
     );
   }

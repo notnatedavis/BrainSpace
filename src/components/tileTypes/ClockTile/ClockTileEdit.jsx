@@ -1,5 +1,5 @@
 // src/components/tileTypes/ClockTile/ClockTileEdit.jsx
-// Edit modal for ClockTile – choose display mode, font, text styling, and hour format.
+// Edit modal for ClockTile – choose display mode, font, text styling, hour format, and date visibility.
 
 // ----- Imports -----
 import React, { useState } from 'react';
@@ -11,6 +11,7 @@ const ClockTileEdit = ({ tile, onSave }) => {
   const [italic, setItalic] = useState(tile.italic || false);
   const [fontFamily, setFontFamily] = useState(tile.fontFamily || 'monospace');
   const [hourFormat, setHourFormat] = useState(tile.hourFormat || '24h');
+  const [showDate, setShowDate] = useState(tile.showDate || false); // new
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -20,6 +21,7 @@ const ClockTileEdit = ({ tile, onSave }) => {
       italic,
       fontFamily,
       hourFormat,
+      showDate,
     });
   };
 
@@ -104,7 +106,7 @@ const ClockTileEdit = ({ tile, onSave }) => {
         <>
           <div>
             <label style={labelStyle}>Text Style</label>
-            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
               <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                 <input
                   type="checkbox"
@@ -120,6 +122,15 @@ const ClockTileEdit = ({ tile, onSave }) => {
                   onChange={(e) => setItalic(e.target.checked)}
                 />
                 Italic
+              </label>
+              {/* New Date checkbox */}
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <input
+                  type="checkbox"
+                  checked={showDate}
+                  onChange={(e) => setShowDate(e.target.checked)}
+                />
+                Date
               </label>
             </div>
           </div>

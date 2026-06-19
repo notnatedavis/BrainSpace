@@ -17,5 +17,6 @@ export default {
     italic: false,
     fontFamily: 'monospace',
     hourFormat: '24h',
+    showDate: false,
   }),
 };

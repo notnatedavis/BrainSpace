@@ -104,10 +104,11 @@ const GridResizeHandles = ({ containerRef }) => {
     zIndex: 100,
   };
 
-  // Corner handles: 16x16px squares at corners
-  const cornerSize = 16;
-  const edgeSize = 8;
-  const OFFSET = -10;
+  // --- Updated sizes and offset for better ergonomics ---
+  // pushed outward and enlarged hit areas
+  const OFFSET = -15; 
+  const cornerSize = 24; 
+  const edgeSize = 12; 
 
   return (
     <>
