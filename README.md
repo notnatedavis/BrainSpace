@@ -1,5 +1,6 @@
 # BrainSpace
 
+(live @ [notnatedavis.github.io/BrainSpace](https://notnatedavis.github.io/BrainSpace/))
 A modern, elegant tileable dashboard for organizing various widgets (notes, images, info cards) in a flexible grid layout.
 
 ## Table of Contents
@@ -34,7 +35,7 @@ The project is built with React (using functional components and hooks) and Vite
 1. cd BrainSpace
 2. npm install
 3. npm run dev
-    - npm run build
+    - npm run deploy
 
 ## Configuration
 - x
