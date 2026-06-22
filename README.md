@@ -1,6 +1,7 @@
 # BrainSpace
 
-(live @ [notnatedavis.github.io/BrainSpace](https://notnatedavis.github.io/BrainSpace/))
+(live @ [notnatedavis.github.io/BrainSpace](https://notnatedavis.github.io/BrainSpace/))  
+
 A modern, elegant tileable dashboard for organizing various widgets (notes, images, info cards) in a flexible grid layout.
 
 ## Table of Contents

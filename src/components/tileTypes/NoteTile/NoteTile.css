@@ -1,0 +1,18 @@
+/* src/components/tileTypes/NoteTile/NoteTile.css */
+
+/* Todo‑item wrapper – each checkbox + its line of text */
+.todo-item {
+  display: block;
+  margin: 0.1em 0;
+  line-height: 1.5;
+}
+
+/* When checked, strike through the whole item (checkbox itself is unaffected) */
+.todo-item.completed {
+  text-decoration: line-through;
+}
+
+/* Preserve checkbox spacing */
+.todo-item .note-checkbox {
+  margin-right: 0.3em;
+}

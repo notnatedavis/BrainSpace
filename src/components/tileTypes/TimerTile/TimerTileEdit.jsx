@@ -1,4 +1,5 @@
 //   src/components/tileTypes/TimerTile/TimerTileEdit.jsx
+//   Edit modal for TimerTile – includes animation selector only for countdown mode.
 
 // ----- Imports -----
 import React, { useState } from 'react';
@@ -84,14 +85,25 @@ const TimerTileEdit = ({ tile, onSave }) => {
       }
       updateData.initialTime = totalSeconds;
     } else {
+      // Stopwatch: ignore initialTime, force visualStyle to 'none'
       updateData.initialTime = undefined;
+      updateData.visualStyle = 'none';
     }
 
     setError(null);
     onSave(updateData);
   };
 
-  // ----- Inline style definitions (consistent with other edit modals) -----
+  // ---- When mode changes to stopwatch, reset visualStyle to 'none' ----
+  const handleModeChange = (newMode) => {
+    setMode(newMode);
+    setError(null);
+    if (newMode === 'stopwatch') {
+      setVisualStyle('none');
+    }
+  };
+
+  // ----- Inline style definitions -----
   const formStyle = {
     display: 'flex',
     flexDirection: 'column',
@@ -146,7 +158,7 @@ const TimerTileEdit = ({ tile, onSave }) => {
 
   return (
     <form onSubmit={handleSubmit} style={formStyle}>
-      {/* ---- Optional title ---- */}
+      {/* ---- Title ---- */}
       <div>
         <label style={labelStyle}>Title</label>
         <input
@@ -165,20 +177,14 @@ const TimerTileEdit = ({ tile, onSave }) => {
           <button
             type="button"
             style={segmentStyle(mode === 'stopwatch')}
-            onClick={() => {
-              setMode('stopwatch');
-              setError(null);
-            }}
+            onClick={() => handleModeChange('stopwatch')}
           >
             Stopwatch
           </button>
           <button
             type="button"
             style={segmentStyle(mode === 'countdown')}
-            onClick={() => {
-              setMode('countdown');
-              setError(null);
-            }}
+            onClick={() => handleModeChange('countdown')}
           >
             Countdown
           </button>
@@ -202,18 +208,22 @@ const TimerTileEdit = ({ tile, onSave }) => {
         </div>
       )}
 
-      {/* ---- Visual style selector ---- */}
-      <div>
-        <label style={labelStyle}>Visual Animation</label>
-        <select
-          value={visualStyle}
-          onChange={(e) => setVisualStyle(e.target.value)}
-          style={{ ...inputStyle, width: '100%' }}
-        >
-          <option value="none">None</option>
-          <option value="circular">Circular Progress</option>
-        </select>
-      </div>
+      {/* ---- Visual animation selector (only for countdown) ---- */}
+      {mode === 'countdown' && (
+        <div>
+          <label style={labelStyle}>Animation Style</label>
+          <select
+            value={visualStyle}
+            onChange={(e) => setVisualStyle(e.target.value)}
+            style={{ ...inputStyle, width: '100%' }}
+          >
+            <option value="none">None</option>
+            <option value="circular">Circular Progress</option>
+            <option value="bar">Linear Bar</option>
+            <option value="color">Color Shift (Green → Red)</option>
+          </select>
+        </div>
+      )}
 
       {/* ---- Error message ---- */}
       {error && (

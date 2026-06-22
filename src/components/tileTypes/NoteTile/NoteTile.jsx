@@ -1,8 +1,10 @@
 // src/components/tileTypes/NoteTile/NoteTile.jsx
 // Display only – no inline editing. Clicking opens the edit modal.
+// Checkbox toggles update the content and apply a strikethrough style.
 
 import React, { useContext, useRef, useEffect } from 'react';
 import { TilesContext } from '../../../context/TilesContext';
+import './NoteTile.css';
 
 // Helper: compute background colour from hue
 const getBackgroundFromHue = (hue) => {
@@ -11,16 +13,41 @@ const getBackgroundFromHue = (hue) => {
   return `hsl(${hue}, 70%, 92%)`;
 };
 
-// Helper: update a checkbox's checked attribute in stored HTML content
-const updateCheckboxInContent = (contentHtml, dataId, isChecked) => {
-  const regex = new RegExp(
-    `(<input[^>]*data-id="${dataId}"[^>]*?)(\\s+checked(?:\\s*=\\s*["'][^"']*["'])?)?(\\s*?>)`,
-    'i'
-  );
-  const replacement = isChecked ? `$1 checked$3` : `$1$3`;
-  return contentHtml.replace(regex, replacement);
+// ----- Upgrade an existing checkbox (without a .todo-item wrapper) to a proper todo item -----
+// Returns the new .todo-item element, or null if upgrade fails.
+const upgradeToTodoItem = (checkbox) => {
+  // Find the nearest block container (div or p)
+  let block = checkbox.parentElement;
+  while (block && block.nodeName !== 'DIV' && block.nodeName !== 'P') {
+    block = block.parentElement;
+  }
+  if (!block) return null;
+
+  // Create wrapper
+  const todoItem = document.createElement('div');
+  todoItem.className = 'todo-item';
+
+  // Gather all children of the block, move them into the wrapper
+  const children = Array.from(block.childNodes);
+  const checkboxIndex = children.indexOf(checkbox);
+  if (checkboxIndex === -1) return null;
+
+  // Remove the checkbox from the array so we can move it to the front
+  children.splice(checkboxIndex, 1);
+  children.forEach(child => todoItem.appendChild(child));
+  // Prepend the checkbox
+  todoItem.insertBefore(checkbox, todoItem.firstChild);
+  // Insert a space after the checkbox for readability
+  todoItem.insertBefore(document.createTextNode(' '), checkbox.nextSibling);
+
+  // Replace block content with the wrapper
+  block.innerHTML = '';
+  block.appendChild(todoItem);
+
+  return todoItem;
 };
 
+// ----- Main component -----
 const NoteTile = ({ tile }) => {
   const { updateTile, setEditingTileId } = useContext(TilesContext);
   const displayRef = useRef(null);
@@ -34,17 +61,51 @@ const NoteTile = ({ tile }) => {
       checkboxes.forEach((cb) => {
         const changeHandler = (e) => {
           e.stopPropagation();
-          const dataId = cb.getAttribute('data-id');
+          const checkbox = e.target;
+          const dataId = checkbox.getAttribute('data-id');
           if (!dataId) return;
 
-          const newChecked = cb.checked;
-          const currentContent = tile.content;
-          const newContent = updateCheckboxInContent(currentContent, dataId, newChecked);
+          const newChecked = checkbox.checked;
 
-          if (newContent !== currentContent) {
-            updateTile(tile.id, { content: newContent });
+          // 1. Find or create a .todo-item wrapper
+          let todoItem = checkbox.closest('.todo-item');
+          if (!todoItem) {
+            // Upgrade legacy checkbox to a todo item
+            todoItem = upgradeToTodoItem(checkbox);
+            if (!todoItem) {
+              // Fallback: just update the checked attribute via old method
+              // (kept for extreme edge cases)
+              const currentContent = tile.content;
+              const regex = new RegExp(
+                `(<input[^>]*data-id="${dataId}"[^>]*?)(\\s+checked(?:\\s*=\\s*["'][^"']*["'])?)?(\\s*?>)`,
+                'i'
+              );
+              const replacement = newChecked ? `$1 checked$3` : `$1$3`;
+              const newContent = currentContent.replace(regex, replacement);
+              if (newContent !== currentContent) {
+                updateTile(tile.id, { content: newContent });
+              }
+              return;
+            }
+          }
+
+          // 2. Toggle the 'completed' class on the todo-item
+          todoItem.classList.toggle('completed', newChecked);
+
+          // 3. Ensure the checkbox's checked attribute is reflected in the HTML
+          if (newChecked) {
+            checkbox.setAttribute('checked', '');
+          } else {
+            checkbox.removeAttribute('checked');
+          }
+
+          // 4. Persist the updated HTML back to state
+          if (displayRef.current) {
+            const updatedContent = displayRef.current.innerHTML;
+            updateTile(tile.id, { content: updatedContent });
           }
         };
+
         const clickHandler = (e) => e.stopPropagation();
 
         cb.addEventListener('change', changeHandler);
@@ -116,6 +177,7 @@ const NoteTile = ({ tile }) => {
           margin-right: 0.25em;
           cursor: pointer;
         }
+        /* Additional todo-item styles are in NoteTile.css */
       `}</style>
     </div>
   );

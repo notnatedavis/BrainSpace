@@ -6,10 +6,11 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  gap: 1rem;
+  gap: calc(1rem * var(--timer-scale, 1));
+  transition: background-color 1s linear; /* for color-shift animation */
 }
 
-/* Container for ring, time, and finish time – keeps them together */
+/* ---- Container for ring, time, and finish time – keeps them together ---- */
 .timer-visual {
   display: flex;
   flex-direction: column;
@@ -17,11 +18,11 @@
   justify-content: center;
   position: relative;   /* for absolute positioning of the SVG behind the text */
   width: 100%;
-  max-width: 120px;     /* adjust to fit tile size */
+  max-width: calc(120px * var(--timer-scale, 1));
   aspect-ratio: 1 / 1;  /* make it square to hold the ring neatly */
 }
 
-/* Circular progress ring – sits behind the time text */
+/* ---- Circular progress ring – sits behind the time text ---- */
 .timer-ring {
   position: absolute;
   top: 0;
@@ -40,11 +41,30 @@
   transition: stroke-dashoffset 1s linear;
 }
 
-/* Time digits – positioned on top of the ring */
+/* ---- Linear progress bar (horizontal) ---- */
+.timer-bar-container {
+  width: 80%;
+  max-width: calc(160px * var(--timer-scale, 1));
+  height: calc(8px * var(--timer-scale, 1));
+  background: var(--color-border);
+  border-radius: calc(4px * var(--timer-scale, 1));
+  overflow: hidden;
+  margin-top: calc(0.5rem * var(--timer-scale, 1));
+}
+
+.timer-bar-progress {
+  height: 100%;
+  width: 100%;
+  background: var(--color-accent);
+  border-radius: calc(4px * var(--timer-scale, 1));
+  transition: width 1s linear;
+}
+
+/* ---- Time digits – positioned on top of the ring (or above bar) ---- */
 .timer-display {
   position: relative;
   z-index: 2;
-  font-size: 1.1rem;
+  font-size: calc(1.1rem * var(--timer-scale, 1));
   font-family: monospace;
   font-weight: bold;
   background: none;            /* transparent so the ring shows through */
@@ -53,29 +73,30 @@
   color: var(--color-text);
 }
 
-/* Estimated finish time – sits directly below the visual block */
+/* ---- Estimated finish time – sits directly below the visual block ---- */
 .timer-finish-time {
-  font-size: 0.75rem;
+  font-size: calc(0.75rem * var(--timer-scale, 1));
   color: var(--color-text-light);
-  margin-top: 0.25rem;
+  margin-top: calc(0.25rem * var(--timer-scale, 1));
   z-index: 2;
   white-space: nowrap;
 }
 
-/* Controls – always at the bottom, never overlapped */
+/* ---- Controls – always at the bottom, never overlapped ---- */
 .timer-controls {
   display: flex;
-  gap: 0.5rem;
+  gap: calc(0.5rem * var(--timer-scale, 1));
 }
 
 .timer-controls button {
-  padding: 0.25rem 0.75rem;
+  padding: calc(0.25rem * var(--timer-scale, 1)) calc(0.75rem * var(--timer-scale, 1));
   border: none;
-  border-radius: 0.25rem;
+  border-radius: calc(0.25rem * var(--timer-scale, 1));
   background: var(--color-accent);
   color: white;
   cursor: pointer;
   transition: background 0.2s;
+  font-size: calc(0.875rem * var(--timer-scale, 1));
 }
 
 .timer-controls button:hover {

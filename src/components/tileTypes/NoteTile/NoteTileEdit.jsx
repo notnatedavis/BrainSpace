@@ -50,12 +50,15 @@ const applyFontSize = (editorRef, deltaPx) => {
   }
 };
 
+// ----- Insert a checkbox wrapped in a .todo-item container at the start of the current line -----
 const insertCheckboxAtLineStart = (editorRef) => {
   if (!editorRef.current) return;
   editorRef.current.focus();
   const selection = window.getSelection();
   if (!selection.rangeCount) return;
   const range = selection.getRangeAt(0);
+
+  // Find the nearest block container (div or p)
   let startContainer = range.startContainer;
   if (startContainer.nodeType === Node.TEXT_NODE) startContainer = startContainer.parentElement;
   let block = startContainer;
@@ -72,17 +75,44 @@ const insertCheckboxAtLineStart = (editorRef) => {
       block = newDiv;
     }
   }
-  const innerHtml = block.innerHTML;
-  if (innerHtml.trimStart().startsWith('<input type="checkbox" class="note-checkbox"')) return;
+
+  // If the block already starts with a checkbox, do nothing
+  const firstChild = block.firstChild;
+  if (firstChild && firstChild.nodeType === Node.ELEMENT_NODE && firstChild.tagName === 'INPUT' && firstChild.type === 'checkbox') {
+    return;
+  }
+
+  // Create todo-item wrapper
+  const todoItem = document.createElement('div');
+  todoItem.className = 'todo-item';
+
+  // Create checkbox input
   const uniqueId = `cb_${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
-  const checkboxHtml = `<input type="checkbox" class="note-checkbox" data-id="${uniqueId}"> `;
-  block.innerHTML = checkboxHtml + innerHtml;
+  const checkbox = document.createElement('input');
+  checkbox.type = 'checkbox';
+  checkbox.className = 'note-checkbox';
+  checkbox.setAttribute('data-id', uniqueId);
+
+  // Move all existing children of the block into the todo-item
+  while (block.firstChild) {
+    todoItem.appendChild(block.firstChild);
+  }
+
+  // Prepend the checkbox and a space
+  todoItem.insertBefore(checkbox, todoItem.firstChild);
+  todoItem.insertBefore(document.createTextNode(' '), checkbox.nextSibling);
+
+  // Clear block and append the todo-item
+  block.innerHTML = '';
+  block.appendChild(todoItem);
+
+  // Place the cursor after the checkbox (after the space)
   const newRange = document.createRange();
-  const textNodeAfter = block.firstChild.nextSibling;
-  if (textNodeAfter && textNodeAfter.nodeType === Node.TEXT_NODE) {
-    newRange.setStart(textNodeAfter, 0);
+  const textNode = todoItem.childNodes[1]; // checkbox then text node (space)
+  if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+    newRange.setStart(textNode, 1);
   } else {
-    newRange.setStart(block, 1);
+    newRange.setStart(todoItem, 2);
   }
   newRange.collapse(true);
   selection.removeAllRanges();
@@ -122,7 +152,6 @@ const NoteTileEdit = ({ tile, onSave }) => {
   const handleSave = () => {
     const html = editorRef.current ? editorRef.current.innerHTML : content;
     const computedBgColor = getBackgroundFromHue(bgHue);
-    // Save only the fields we use (title removed, fontSize/headerLevel omitted)
     onSave({
       content: html,
       noteStyle: {
@@ -133,7 +162,7 @@ const NoteTileEdit = ({ tile, onSave }) => {
         bgHue,
         backgroundColor: computedBgColor,
       },
-      title: '', // title is hidden in the UI, keep empty
+      title: '',
     });
   };
 
