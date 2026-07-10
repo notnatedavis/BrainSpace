@@ -1,8 +1,8 @@
-//   src/utils/pinterestApi.js
-//   Fetch public Pinterest board data via RSS feed.
-//   Uses a Vite proxy (/pinterest-rss) in development.
-//   In production, falls back to a public CORS proxy (allorigins) because GitHub Pages cannot host a custom proxy.
-//   Includes sanitization of invalid XML characters, caching, and exponential backoff.
+// src/utils/pinterestApi.js
+// Fetch public Pinterest board data via RSS feed.
+// Uses a Vite proxy (/pinterest-rss) in development.
+// In production, falls back to a public CORS proxy (allorigins) because GitHub Pages cannot host a custom proxy.
+// Includes sanitization of invalid XML characters, caching, exponential backoff, and request deduplication.
 
 import { logger } from './logger';
 
@@ -15,6 +15,9 @@ const PROXY_BASE = isDevelopment
 // ----- Simple in‑memory cache for the RSS data -----
 const cache = new Map();
 const CACHE_TTL = 120000; // 2 minutes
+
+// ----- Pending fetches deduplication -----
+const pendingFetches = new Map();
 
 const getCached = (key) => {
   const entry = cache.get(key);
@@ -53,7 +56,6 @@ const resetBackoff = (key) => {
 // ----- Sanitize XML string: remove control characters except allowed ones -----
 // Allowed XML 1.0 characters: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
 const sanitizeXml = (text) => {
-  // Replace invalid characters with a space (or could remove them)
   // eslint-disable-next-line no-control-regex
   return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ' ');
 };
@@ -78,12 +80,10 @@ export const parseBoardUrl = (boardUrl) => {
 // ----- Helper: parse XML text into a Document -----
 const parseXML = (text) => {
   const parser = new DOMParser();
-  // Sanitize before parsing to avoid invalid character errors
   const sanitized = sanitizeXml(text);
   const doc = parser.parseFromString(sanitized, 'application/xml');
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    // Attempt to extract more info
     const errorMsg = errorNode.textContent || 'Unknown XML parsing error';
     throw new Error(`XML parse error: ${errorMsg.substring(0, 150)}`);
   }
@@ -116,7 +116,7 @@ const buildFetchUrl = (username, boardName) => {
   }
 };
 
-// ----- Main board data fetcher with sanitization, cache, and backoff -----
+// ----- Main board data fetcher with sanitization, cache, backoff, and deduplication -----
 export const fetchBoardData = async (boardUrl) => {
   logger.debug(`fetchBoardData called with URL: ${boardUrl}`);
 
@@ -134,7 +134,13 @@ export const fetchBoardData = async (boardUrl) => {
     return cached;
   }
 
-  // 2) Respect backoff – if recently failed, reuse expired cache or throw softly
+  // 2) Deduplicate in-flight requests
+  if (pendingFetches.has(cacheKey)) {
+    logger.debug(`Fetch already in progress for "${cacheKey}", waiting for existing promise`);
+    return pendingFetches.get(cacheKey);
+  }
+
+  // 3) Respect backoff – if recently failed, reuse expired cache or throw softly
   if (!shouldRetry(cacheKey)) {
     if (cached) {
       logger.debug(`Backoff active for "${cacheKey}", serving stale cache`);
@@ -147,98 +153,126 @@ export const fetchBoardData = async (boardUrl) => {
   const fetchUrl = buildFetchUrl(username, boardName);
   logger.debug(`Fetching RSS feed from: ${fetchUrl}`);
 
-  let response;
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
-    response = await fetch(fetchUrl, { signal: controller.signal });
-    clearTimeout(timeoutId);
+  // Create the promise and store it in pending map
+  const fetchPromise = (async () => {
+    let response;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // increased timeout to 15s
+      response = await fetch(fetchUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
 
-    logger.debug(`RSS response status: ${response.status}`);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      logger.debug(`RSS response status: ${response.status}`);
+      if (!response.ok) {
+        // Handle specific status codes
+        if (response.status === 408) {
+          throw new Error('Request timeout - server took too long to respond');
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+    } catch (err) {
+      // If the error is an AbortError, it's likely a timeout
+      const isAbort = err.name === 'AbortError' || err.message?.includes('aborted');
+      if (isAbort) {
+        logger.warn(`Fetch for "${cacheKey}" aborted (timeout or user abort)`);
+        // Treat as failure for backoff, but we might retry later
+        recordFailure(cacheKey);
+        if (cached) {
+          logger.debug('Serving stale cache after abort');
+          return cached;
+        }
+        throw new Error('Request timed out. Please try again later.');
+      }
+      logger.error('Failed to fetch RSS feed:', err);
+      recordFailure(cacheKey);
+      if (cached) {
+        logger.debug('Serving stale cache after fetch error');
+        return cached;
+      }
+      throw new Error(`Unable to load board RSS feed: ${err.message}`);
     }
-  } catch (err) {
-    logger.error('Failed to fetch RSS feed:', err);
-    recordFailure(cacheKey);
-    if (cached) {
-      logger.debug('Serving stale cache after fetch error');
-      return cached;
+
+    // Get response text
+    let xmlText;
+    try {
+      xmlText = await response.text();
+      logger.debug(`RSS feed length: ${xmlText.length} characters`);
+    } catch (err) {
+      logger.error('Failed to read response text:', err);
+      recordFailure(cacheKey);
+      if (cached) return cached;
+      throw new Error('Failed to read board data');
     }
-    throw new Error(`Unable to load board RSS feed: ${err.message}`);
-  }
 
-  // Get response text
-  let xmlText;
+    // Check if the response might be an error HTML page (common with allorigins)
+    if (xmlText.trim().startsWith('<!DOCTYPE') || xmlText.includes('<html')) {
+      logger.warn('Received HTML instead of RSS – board may be private or invalid');
+      recordFailure(cacheKey);
+      if (cached) return cached;
+      throw new Error('Board is not accessible (may be private or invalid URL)');
+    }
+
+    // Parse XML with sanitization
+    let doc;
+    try {
+      doc = parseXML(xmlText);
+    } catch (err) {
+      logger.error('XML parsing failed:', err);
+      recordFailure(cacheKey);
+      if (cached) return cached;
+      throw new Error(`RSS feed could not be parsed: ${err.message}`);
+    }
+
+    const channelTitle = doc.querySelector('channel > title');
+    const boardTitle = channelTitle
+      ? channelTitle.textContent.trim()
+      : boardName;
+    logger.debug(`Board title: "${boardTitle}"`);
+
+    const items = doc.querySelectorAll('item');
+    logger.debug(`Found ${items.length} items in RSS feed`);
+    if (items.length === 0) {
+      recordFailure(cacheKey);
+      if (cached) return cached;
+      throw new Error('The board appears to be empty or not public.');
+    }
+
+    const allImageUrls = [];
+    items.forEach((item, index) => {
+      const imgs = extractImageUrlsFromItem(item);
+      logger.debug(`Item ${index + 1}: extracted ${imgs.length} image(s)`);
+      allImageUrls.push(...imgs);
+    });
+
+    // Filter only pinimg.com URLs and deduplicate
+    const pinImages = allImageUrls
+      .filter(url => url.includes('pinimg.com'))
+      .filter((url, idx, arr) => arr.indexOf(url) === idx);
+
+    logger.debug(`Total unique Pinterest images found: ${pinImages.length}`);
+    if (pinImages.length === 0) {
+      recordFailure(cacheKey);
+      if (cached) return cached;
+      throw new Error('No pin images found in the RSS feed. The board may be empty or private.');
+    }
+
+    const result = { title: boardTitle, pinImages };
+
+    // Cache successful response and reset backoff
+    setCache(cacheKey, result);
+    resetBackoff(cacheKey);
+
+    return result;
+  })();
+
+  // Store the promise in pending map, remove when settled
+  pendingFetches.set(cacheKey, fetchPromise);
   try {
-    xmlText = await response.text();
-    logger.debug(`RSS feed length: ${xmlText.length} characters`);
-  } catch (err) {
-    logger.error('Failed to read response text:', err);
-    recordFailure(cacheKey);
-    if (cached) return cached;
-    throw new Error('Failed to read board data');
+    const result = await fetchPromise;
+    return result;
+  } finally {
+    pendingFetches.delete(cacheKey);
   }
-
-  // Check if the response might be an error HTML page (common with allorigins)
-  if (xmlText.trim().startsWith('<!DOCTYPE') || xmlText.includes('<html')) {
-    logger.warn('Received HTML instead of RSS – board may be private or invalid');
-    recordFailure(cacheKey);
-    if (cached) return cached;
-    throw new Error('Board is not accessible (may be private or invalid URL)');
-  }
-
-  // Parse XML with sanitization
-  let doc;
-  try {
-    doc = parseXML(xmlText);
-  } catch (err) {
-    logger.error('XML parsing failed:', err);
-    recordFailure(cacheKey);
-    if (cached) return cached;
-    throw new Error(`RSS feed could not be parsed: ${err.message}`);
-  }
-
-  const channelTitle = doc.querySelector('channel > title');
-  const boardTitle = channelTitle
-    ? channelTitle.textContent.trim()
-    : boardName;
-  logger.debug(`Board title: "${boardTitle}"`);
-
-  const items = doc.querySelectorAll('item');
-  logger.debug(`Found ${items.length} items in RSS feed`);
-  if (items.length === 0) {
-    recordFailure(cacheKey);
-    if (cached) return cached;
-    throw new Error('The board appears to be empty or not public.');
-  }
-
-  const allImageUrls = [];
-  items.forEach((item, index) => {
-    const imgs = extractImageUrlsFromItem(item);
-    logger.debug(`Item ${index + 1}: extracted ${imgs.length} image(s)`);
-    allImageUrls.push(...imgs);
-  });
-
-  // Filter only pinimg.com URLs and deduplicate
-  const pinImages = allImageUrls
-    .filter(url => url.includes('pinimg.com'))
-    .filter((url, idx, arr) => arr.indexOf(url) === idx);
-
-  logger.debug(`Total unique Pinterest images found: ${pinImages.length}`);
-  if (pinImages.length === 0) {
-    recordFailure(cacheKey);
-    if (cached) return cached;
-    throw new Error('No pin images found in the RSS feed. The board may be empty or private.');
-  }
-
-  const result = { title: boardTitle, pinImages };
-
-  // Cache successful response and reset backoff
-  setCache(cacheKey, result);
-  resetBackoff(cacheKey);
-
-  return result;
 };
 
 // ----- Random image selector -----
