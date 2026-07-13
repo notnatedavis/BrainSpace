@@ -2,6 +2,7 @@
 //   Displays a stopwatch or countdown timer with optional visual animations.
 //   Animations are only available for countdown mode.
 //   All visual elements scale with the tile size (tile.size).
+//   Uses time‑based calculation to remain accurate even when tab is inactive.
 
 // ----- Imports -----
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -33,14 +34,15 @@ const TimerTile = ({ tile }) => {
   const { mode, initialTime, visualStyle, size = 1 } = tile;
 
   // Scale factor based on tile size (grid cells)
-  // 1x1 → 1.0, 2x2 → 1.5, 3x3 → 2.0, etc.
   const scaleFactor = 1 + (size - 1) * 0.5;
 
-  // State
+  // ----- State -----
   const [time, setTime] = useState(mode === 'stopwatch' ? 0 : initialTime);
   const [isRunning, setIsRunning] = useState(false);
 
-  // Refs
+  // ----- Refs for time‑based calculations -----
+  const startTimeRef = useRef(null);      // timestamp when timer started (or resumed)
+  const pausedTimeRef = useRef(null);    // stored time (seconds) at pause
   const intervalRef = useRef(null);
   const modeRef = useRef(mode);
 
@@ -49,26 +51,80 @@ const TimerTile = ({ tile }) => {
     modeRef.current = mode;
   }, [mode]);
 
-  // ----- Timer logic (cleans up interval on unmount or when running state changes) -----
+  // ----- Core tick function: compute current time from start timestamp -----
+  const tick = useCallback(() => {
+    if (!startTimeRef.current) return;
+
+    const currentMode = modeRef.current;
+    const elapsed = (Date.now() - startTimeRef.current) / 1000; // seconds
+
+    let newTime;
+    if (currentMode === 'stopwatch') {
+      newTime = elapsed;
+    } else {
+      // countdown: remaining = stored initial - elapsed
+      const remaining = pausedTimeRef.current - elapsed;
+      newTime = Math.max(0, remaining);
+    }
+
+    setTime(newTime);
+
+    // Stop if countdown reaches zero
+    if (currentMode === 'countdown' && newTime <= 0) {
+      setIsRunning(false);
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // ----- Timer control handlers -----
+  const startTimer = useCallback((e) => {
+    e.stopPropagation();
+    if (isRunning) return;
+
+    // If countdown already at zero, reset to initial time
+    if (mode === 'countdown' && time === 0) {
+      pausedTimeRef.current = initialTime;
+      setTime(initialTime);
+    }
+
+    // Set start time based on the current stored time
+    // For stopwatch, pausedTimeRef holds elapsed seconds; for countdown, remaining seconds.
+    const currentTime = mode === 'stopwatch' ? time : pausedTimeRef.current ?? initialTime;
+    startTimeRef.current = Date.now() - currentTime * 1000;
+
+    setIsRunning(true);
+  }, [isRunning, mode, time, initialTime]);
+
+  const pauseTimer = useCallback((e) => {
+    e.stopPropagation();
+    if (!isRunning) return;
+
+    // Store the current time (elapsed or remaining) at pause
+    pausedTimeRef.current = time;
+    setIsRunning(false);
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+  }, [isRunning, time]);
+
+  const resetTimer = useCallback((e) => {
+    e.stopPropagation();
+    setIsRunning(false);
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+
+    const resetValue = mode === 'stopwatch' ? 0 : initialTime;
+    setTime(resetValue);
+    pausedTimeRef.current = resetValue;
+    startTimeRef.current = null;
+  }, [mode, initialTime]);
+
+  // ----- Set up interval when running -----
   useEffect(() => {
     if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTime((prev) => {
-          const currentMode = modeRef.current;
-          let newTime;
-          if (currentMode === 'stopwatch') {
-            newTime = prev + 1;
-          } else { // countdown
-            if (prev <= 1) {
-              setIsRunning(false);
-              clearInterval(intervalRef.current);
-              return 0;
-            }
-            newTime = prev - 1;
-          }
-          return Math.max(0, newTime);
-        });
-      }, 1000);
+      // Tick immediately to avoid a 100ms delay on start
+      tick();
+      intervalRef.current = setInterval(tick, 100); // update every 100ms for smoothness
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -80,28 +136,7 @@ const TimerTile = ({ tile }) => {
         intervalRef.current = null;
       }
     };
-  }, [isRunning]);
-
-  // ----- Control handlers -----
-  const startTimer = useCallback((e) => {
-    e.stopPropagation();
-    if (isRunning) return;
-    if (mode === 'countdown' && time === 0) {
-      setTime(initialTime);
-    }
-    setIsRunning(true);
-  }, [isRunning, mode, time, initialTime]);
-
-  const pauseTimer = useCallback((e) => {
-    e.stopPropagation();
-    setIsRunning(false);
-  }, []);
-
-  const resetTimer = useCallback((e) => {
-    e.stopPropagation();
-    setIsRunning(false);
-    setTime(mode === 'stopwatch' ? 0 : initialTime);
-  }, [mode, initialTime]);
+  }, [isRunning, tick]);
 
   // ----- Estimated finish time (countdown only) -----
   const finishTime = useMemo(() => {
