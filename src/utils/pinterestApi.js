@@ -1,20 +1,27 @@
 // src/utils/pinterestApi.js
 // Fetch public Pinterest board data via RSS feed.
 // Uses a Vite proxy (/pinterest-rss) in development.
-// In production, falls back to a public CORS proxy (allorigins) because GitHub Pages cannot host a custom proxy.
+// In production, falls back to a list of CORS proxies with retry logic.
 // Includes sanitization of invalid XML characters, caching, exponential backoff, and request deduplication.
 
 import { logger } from './logger';
 
 // ----- Determine which fetch endpoint to use -----
 const isDevelopment = import.meta.env.DEV;
-const PROXY_BASE = isDevelopment
-  ? '/pinterest-rss'
-  : 'https://api.allorigins.win/raw?url=';
+
+// List of CORS proxies to try (in order of preference)
+const PROXY_LIST = [
+  // Development proxy (only works in dev)
+  isDevelopment ? '/pinterest-rss' : null,
+  // Public CORS proxies
+  'https://api.allorigins.win/raw?url=',
+  'https://thingproxy.freeboard.io/fetch/',
+  'https://corsproxy.io/?url=',
+].filter(Boolean);
 
 // ----- Simple in‑memory cache for the RSS data -----
 const cache = new Map();
-const CACHE_TTL = 120000; // 2 minutes
+const CACHE_TTL = 300000; // 5 minutes (was 2)
 
 // ----- Pending fetches deduplication -----
 const pendingFetches = new Map();
@@ -105,18 +112,60 @@ const extractImageUrlsFromItem = (item) => {
   return matches;
 };
 
-// ----- Build the actual fetch URL (with or without proxy) -----
-const buildFetchUrl = (username, boardName) => {
+// ----- Build the actual fetch URL for a given proxy and board -----
+const buildFetchUrl = (proxyBase, username, boardName) => {
   const rssPath = `/${username}/${boardName}.rss`;
-  if (isDevelopment) {
-    return `${PROXY_BASE}${rssPath}`;
+  if (proxyBase === '/pinterest-rss') {
+    // Development proxy
+    return `${proxyBase}${rssPath}`;
   } else {
+    // External proxy: encode the full Pinterest RSS URL
     const fullPinterestUrl = `https://www.pinterest.com${rssPath}`;
-    return `${PROXY_BASE}${encodeURIComponent(fullPinterestUrl)}`;
+    return `${proxyBase}${encodeURIComponent(fullPinterestUrl)}`;
   }
 };
 
-// ----- Main board data fetcher with sanitization, cache, backoff, and deduplication -----
+// ----- Attempt a single fetch with a given proxy and timeout -----
+const attemptFetch = async (proxyBase, username, boardName, timeoutMs = 30000) => {
+  const fetchUrl = buildFetchUrl(proxyBase, username, boardName);
+  logger.debug(`Attempting fetch with proxy: ${proxyBase} -> ${fetchUrl}`);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(fetchUrl, {
+      signal: controller.signal,
+      // Some proxies might need a specific user-agent; we add a generic one.
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; BrainSpace/1.0; +https://notnatedavis.github.io/BrainSpace)',
+      },
+    });
+    clearTimeout(timeoutId);
+
+    logger.debug(`RSS response status: ${response.status} from ${proxyBase}`);
+    if (!response.ok) {
+      // If status is 408 or 504 (gateway timeout), treat as a proxy failure
+      if (response.status === 408 || response.status === 504) {
+        throw new Error(`Proxy timeout (HTTP ${response.status})`);
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const xmlText = await response.text();
+    logger.debug(`RSS feed length: ${xmlText.length} characters`);
+    return xmlText;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    // If it's an AbortError, it's our own timeout
+    if (err.name === 'AbortError') {
+      throw new Error('Request timed out after ' + timeoutMs + 'ms');
+    }
+    throw err;
+  }
+};
+
+// ----- Main board data fetcher with proxy fallback and caching -----
 export const fetchBoardData = async (boardUrl) => {
   logger.debug(`fetchBoardData called with URL: ${boardUrl}`);
 
@@ -150,122 +199,92 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error('Too many requests – cooling down');
   }
 
-  const fetchUrl = buildFetchUrl(username, boardName);
-  logger.debug(`Fetching RSS feed from: ${fetchUrl}`);
-
-  // Create the promise and store it in pending map
+  // create the promise that tries each proxy
   const fetchPromise = (async () => {
-    let response;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // increased timeout to 15s
-      response = await fetch(fetchUrl, { signal: controller.signal });
-      clearTimeout(timeoutId);
-
-      logger.debug(`RSS response status: ${response.status}`);
-      if (!response.ok) {
-        // Handle specific status codes
-        if (response.status === 408) {
-          throw new Error('Request timeout - server took too long to respond');
+    let lastError = null;
+    // try each proxy in sequence
+    for (let i = 0; i < PROXY_LIST.length; i++) {
+      const proxyBase = PROXY_LIST[i];
+      try {
+        const xmlText = await attemptFetch(proxyBase, username, boardName, 30000); // 30s timeout
+        // If we get HTML instead of XML, the proxy might have returned an error page
+        if (xmlText.trim().startsWith('<!DOCTYPE') || xmlText.includes('<html')) {
+          throw new Error('Proxy returned HTML instead of RSS – board may be private or invalid');
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-    } catch (err) {
-      // If the error is an AbortError, it's likely a timeout
-      const isAbort = err.name === 'AbortError' || err.message?.includes('aborted');
-      if (isAbort) {
-        logger.warn(`Fetch for "${cacheKey}" aborted (timeout or user abort)`);
-        // Treat as failure for backoff, but we might retry later
-        recordFailure(cacheKey);
-        if (cached) {
-          logger.debug('Serving stale cache after abort');
-          return cached;
+
+        // Parse XML
+        const doc = parseXML(xmlText);
+
+        const channelTitle = doc.querySelector('channel > title');
+        const boardTitle = channelTitle
+          ? channelTitle.textContent.trim()
+          : boardName;
+        logger.debug(`Board title: "${boardTitle}"`);
+
+        const items = doc.querySelectorAll('item');
+        logger.debug(`Found ${items.length} items in RSS feed`);
+        if (items.length === 0) {
+          throw new Error('The board appears to be empty or not public.');
         }
-        throw new Error('Request timed out. Please try again later.');
+
+        const allImageUrls = [];
+        items.forEach((item, index) => {
+          const imgs = extractImageUrlsFromItem(item);
+          logger.debug(`Item ${index + 1}: extracted ${imgs.length} image(s)`);
+          allImageUrls.push(...imgs);
+        });
+
+        // Filter only pinimg.com URLs and deduplicate
+        const pinImages = allImageUrls
+          .filter(url => url.includes('pinimg.com'))
+          .filter((url, idx, arr) => arr.indexOf(url) === idx);
+
+        logger.debug(`Total unique Pinterest images found: ${pinImages.length}`);
+        if (pinImages.length === 0) {
+          throw new Error('No pin images found in the RSS feed. The board may be empty or private.');
+        }
+
+        const result = { title: boardTitle, pinImages };
+
+        // Cache successful response and reset backoff
+        setCache(cacheKey, result);
+        resetBackoff(cacheKey);
+
+        return result;
+      } catch (err) {
+        logger.warn(`Proxy ${proxyBase} failed:`, err.message);
+        lastError = err;
+        // If this was a timeout or 408, we can try the next proxy
+        // Otherwise, maybe it's a permanent error (like 404) – we can stop retrying
+        const isTimeout = err.message.includes('timed out') || err.message.includes('Proxy timeout');
+        const isHtml = err.message.includes('HTML instead of RSS');
+        const is404 = err.message.includes('HTTP 404');
+        if (is404 || isHtml) {
+          // These are likely final errors; no point in trying other proxies
+          break;
+        }
+        // For other errors, continue to next proxy
+        continue;
       }
-      logger.error('Failed to fetch RSS feed:', err);
+    }
+
+    // If we exhausted all proxies
+    if (lastError) {
       recordFailure(cacheKey);
-      if (cached) {
-        logger.debug('Serving stale cache after fetch error');
-        return cached;
+      // If we have stale cache, serve it
+      const stale = getCached(cacheKey);
+      if (stale) {
+        logger.debug('Serving stale cache after all proxies failed');
+        return stale;
       }
-      throw new Error(`Unable to load board RSS feed: ${err.message}`);
+      throw lastError;
     }
 
-    // Get response text
-    let xmlText;
-    try {
-      xmlText = await response.text();
-      logger.debug(`RSS feed length: ${xmlText.length} characters`);
-    } catch (err) {
-      logger.error('Failed to read response text:', err);
-      recordFailure(cacheKey);
-      if (cached) return cached;
-      throw new Error('Failed to read board data');
-    }
-
-    // Check if the response might be an error HTML page (common with allorigins)
-    if (xmlText.trim().startsWith('<!DOCTYPE') || xmlText.includes('<html')) {
-      logger.warn('Received HTML instead of RSS – board may be private or invalid');
-      recordFailure(cacheKey);
-      if (cached) return cached;
-      throw new Error('Board is not accessible (may be private or invalid URL)');
-    }
-
-    // Parse XML with sanitization
-    let doc;
-    try {
-      doc = parseXML(xmlText);
-    } catch (err) {
-      logger.error('XML parsing failed:', err);
-      recordFailure(cacheKey);
-      if (cached) return cached;
-      throw new Error(`RSS feed could not be parsed: ${err.message}`);
-    }
-
-    const channelTitle = doc.querySelector('channel > title');
-    const boardTitle = channelTitle
-      ? channelTitle.textContent.trim()
-      : boardName;
-    logger.debug(`Board title: "${boardTitle}"`);
-
-    const items = doc.querySelectorAll('item');
-    logger.debug(`Found ${items.length} items in RSS feed`);
-    if (items.length === 0) {
-      recordFailure(cacheKey);
-      if (cached) return cached;
-      throw new Error('The board appears to be empty or not public.');
-    }
-
-    const allImageUrls = [];
-    items.forEach((item, index) => {
-      const imgs = extractImageUrlsFromItem(item);
-      logger.debug(`Item ${index + 1}: extracted ${imgs.length} image(s)`);
-      allImageUrls.push(...imgs);
-    });
-
-    // Filter only pinimg.com URLs and deduplicate
-    const pinImages = allImageUrls
-      .filter(url => url.includes('pinimg.com'))
-      .filter((url, idx, arr) => arr.indexOf(url) === idx);
-
-    logger.debug(`Total unique Pinterest images found: ${pinImages.length}`);
-    if (pinImages.length === 0) {
-      recordFailure(cacheKey);
-      if (cached) return cached;
-      throw new Error('No pin images found in the RSS feed. The board may be empty or private.');
-    }
-
-    const result = { title: boardTitle, pinImages };
-
-    // Cache successful response and reset backoff
-    setCache(cacheKey, result);
-    resetBackoff(cacheKey);
-
-    return result;
+    // should never happen, just in case
+    throw new Error('No proxy available to fetch board data');
   })();
 
-  // Store the promise in pending map, remove when settled
+  // store the promise in pending map, remove when settled
   pendingFetches.set(cacheKey, fetchPromise);
   try {
     const result = await fetchPromise;
