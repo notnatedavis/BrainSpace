@@ -1,17 +1,17 @@
-// Exported BrainSpace profile: Demo 2
+// Exported BrainSpace profile: DemoProfile2
 const profile = {
   "id": "exported",
-  "name": "Demo 2",
+  "name": "DemoProfile2",
   "tiles": [
     {
-      "id": 1781385958391,
+      "id": 1784658248516,
       "type": "calendar",
-      "row": 3,
-      "col": 0,
-      "size": 1,
+      "row": 0,
+      "col": 3,
+      "size": 2,
       "title": "Calendar",
       "year": 2026,
-      "month": 5,
+      "month": 6,
       "backgroundColor": {
         "h": 0,
         "s": 0,
@@ -21,101 +21,84 @@ const profile = {
       "scale": 1
     },
     {
-      "id": 1781385964892,
-      "type": "board",
-      "row": 3,
-      "col": 3,
-      "size": 1,
-      "title": "[posters]📸🧿🩻",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/posters/",
-      "boardTitle": "[posters]📸🧿🩻",
-      "pinImageUrl": "https://i.pinimg.com/236x/11/df/4a/11df4a00642dfcc4bb6bae11beedc7a7.jpg",
-      "lastUpdated": 1781386124150,
-      "autoRefreshInterval": 20
-    },
-    {
-      "id": 1781386011412,
-      "type": "board",
-      "row": 2,
-      "col": 3,
-      "size": 1,
-      "title": "[places]🏔️",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/places/",
-      "boardTitle": "[places]🏔️",
-      "pinImageUrl": "https://i.pinimg.com/236x/53/9c/03/539c03e7497d95737229930645ca7984.jpg",
-      "lastUpdated": 1781386118519,
-      "autoRefreshInterval": 20
-    },
-    {
-      "id": 1781386026572,
-      "type": "board",
-      "row": 3,
-      "col": 2,
-      "size": 1,
-      "title": "[quotes]🗣️📗📝",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/quotes/",
-      "boardTitle": "[quotes]🗣️📗📝",
-      "pinImageUrl": "https://i.pinimg.com/236x/35/b8/7c/35b87ce7e105c015fbb7bd38483006aa.jpg",
-      "lastUpdated": 1781386130437,
-      "autoRefreshInterval": 20
-    },
-    {
-      "id": 1781386037329,
+      "id": 1784658250745,
       "type": "clock",
-      "row": 0,
-      "col": 0,
+      "row": 2,
+      "col": 5,
       "size": 1,
       "displayMode": "flip",
       "bold": true,
       "italic": true,
       "fontFamily": "sans",
-      "hourFormat": "12h"
+      "hourFormat": "12h",
+      "showDate": true
     },
     {
-      "id": 1781386046015,
-      "type": "timer",
-      "row": 0,
+      "id": 1784658358403,
+      "type": "pinterest",
+      "row": 1,
       "col": 1,
-      "size": 1,
-      "title": "Pomo",
-      "mode": "countdown",
-      "initialTime": 1800,
-      "visualStyle": "circular"
+      "size": 2,
+      "title": " ",
+      "mode": "pin",
+      "boardUrl": "",
+      "boardTitle": "",
+      "pinImageUrl": "",
+      "autoRefreshInterval": 0,
+      "pinUrl": "https://www.pinterest.com/pin/578360777198992460/",
+      "imageUrl": "https://i.pinimg.com/236x/13/9d/03/139d031089e966d01d7601411e55db03.jpg",
+      "lastUpdated": null
     },
     {
-      "id": 1781386092444,
+      "id": 1784658368979,
+      "type": "pinterest",
+      "row": 2,
+      "col": 3,
+      "size": 2,
+      "title": " ",
+      "mode": "pin",
+      "boardUrl": "",
+      "boardTitle": "",
+      "pinImageUrl": "",
+      "autoRefreshInterval": 0,
+      "pinUrl": "https://www.pinterest.com/pin/578360777198924418/",
+      "imageUrl": "https://i.pinimg.com/236x/94/38/ed/9438edd5ce45c6bc80f3258204a6a12c.jpg",
+      "lastUpdated": null
+    },
+    {
+      "id": 1784658400633,
       "type": "note",
       "row": 0,
-      "col": 2,
+      "col": 0,
       "size": 1,
       "title": "",
-      "content": "<span style=\"font-style: italic;\">at some point today I would love to dump my thoughts onto some notes, compose myself, and move forwards.</span>",
+      "content": "<b><u>To Do </u></b>:&nbsp;<div><br></div><div>-&nbsp; eat sweets</div><div>-&nbsp; take nap</div><div>-&nbsp; look good</div>",
       "noteStyle": {
         "bold": false,
         "italic": false,
         "underline": false,
         "fontFamily": "sans",
-        "bgHue": 12,
-        "backgroundColor": "hsl(12, 70%, 92%)"
+        "bgHue": 315,
+        "backgroundColor": "hsl(315, 70%, 92%)"
       }
     }
   ],
   "gridRows": 4,
-  "gridCols": 4,
+  "gridCols": 6,
   "bgColor": {
-    "h": 49,
-    "s": 24,
-    "l": 77
+    "h": 0,
+    "s": 64,
+    "l": 94
   },
   "accentColor": {
-    "h": 53,
-    "s": 65,
-    "l": 34
+    "h": 360,
+    "s": 82,
+    "l": 85
   },
-  "backgroundType": "youtube",
-  "backgroundValue": "https://www.youtube.com/watch?v=CBLobHhY0Gk",
-  "backgroundOpacity": 0.77,
+  "backgroundType": "none",
+  "backgroundValue": "",
+  "backgroundOpacity": 0.73,
   "backgroundMuted": true,
-  "containerOutlineWidth": 8
+  "containerOutlineWidth": 10
 };
 export default profile;

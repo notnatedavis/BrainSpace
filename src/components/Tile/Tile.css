@@ -169,16 +169,20 @@
   transform: scale(0.95);
 }
 
-/* ------ Image‑filled & Board‑filled & YouTube‑filled overrides ------ */
+/* ------ Image‑filled & Board‑filled & YouTube‑filled & Pinterest‑filled overrides ------ */
 .tile.image-tile-filled,
 .tile.board-tile-filled,
-.tile.youtube-tile-filled {
+.tile.youtube-tile-filled,
+.tile.pinterest-tile-filled {
   padding: 0 !important;
+  border: none;
+  box-shadow: none;
 }
 
 .tile.image-tile-filled .tile-content,
 .tile.board-tile-filled .tile-content,
-.tile.youtube-tile-filled .tile-content {
+.tile.youtube-tile-filled .tile-content,
+.tile.pinterest-tile-filled .tile-content {
   padding: 0;
   overflow: hidden;
   border-radius: var(--border-radius);
@@ -186,7 +190,8 @@
 
 .tile.image-tile-filled .tile-content img,
 .tile.board-tile-filled .tile-content img,
-.tile.youtube-tile-filled .tile-content iframe {
+.tile.youtube-tile-filled .tile-content iframe,
+.tile.pinterest-tile-filled .tile-content img {
   border-radius: var(--border-radius);
 }
 

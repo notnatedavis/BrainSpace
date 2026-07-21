@@ -58,8 +58,18 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
   const isYoutubeWithUrl = tile.type === 'youtube' && tile.url;
   const isCalendarTile = tile.type === 'calendar';
   const isTimerTile = tile.type === 'timer';
+  const isPinterestFilled =
+    tile.type === 'pinterest' &&
+    ((tile.mode === 'board' && tile.pinImageUrl) ||
+     (tile.mode === 'pin' && tile.imageUrl));
 
-  const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${isImageWithContent ? 'image-tile-filled' : ''} ${isNoteTile ? 'note-tile' : ''} ${isBoardWithImage ? 'board-tile-filled' : ''} ${isYoutubeWithUrl ? 'youtube-tile-filled' : ''}`;
+  const tileClasses = `tile ${isDragging ? 'dragging' : ''} ${
+    isImageWithContent ? 'image-tile-filled' : ''
+  } ${isNoteTile ? 'note-tile' : ''} ${
+    isBoardWithImage ? 'board-tile-filled' : ''
+  } ${isYoutubeWithUrl ? 'youtube-tile-filled' : ''} ${
+    isPinterestFilled ? 'pinterest-tile-filled' : ''
+  }`;
 
   // ----- Resize mouse down -----
   const handleResizeMouseDown = useCallback((corner) => (e) => {
@@ -105,7 +115,6 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
     // shrinking (desiredSize < currentSize): just clamp to >=1 and use desired position
     if (desiredSize < currentSize) {
       const clampedSize = Math.max(1, desiredSize);
-      // recompute row/col from anchor with clamped size
       let newRow, newCol;
       switch (corner) {
         case 'tl':
@@ -299,7 +308,8 @@ const Tile = ({ tile, onRemove, onDragStart, isDragging, containerRef, gridRows,
         isBoardWithImage ||
         isYoutubeWithUrl ||
         isCalendarTile ||
-        isTimerTile
+        isTimerTile ||
+        isPinterestFilled
       ) && <h3 className="tile-title">{tile.title}</h3>}
 
       <div className="tile-content" onClick={handleContentClick}>

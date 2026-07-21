@@ -1,30 +1,21 @@
-// src/utils/pinterestApi.js
-// Fetch public Pinterest board data via RSS feed.
-// Uses a Vite proxy (/pinterest-rss) in development.
-// In production, falls back to a list of CORS proxies with retry logic.
-// Includes sanitization of invalid XML characters, caching, exponential backoff, and request deduplication.
+//   src/utils/pinterestApi.js
+
+//   Fetch public Pinterest board data via RSS feed and static pin images via oEmbed.
+//
+//   In development (Vite) the dev‑server proxy /pinterest‑rss is used.
+//   In production the fetcher is environment‑aware:
+//     - If VITE_PINTEREST_PROXY is set, it uses that proxy (recommended).
+//     - Otherwise it tries a list of public CORS proxies sequentially.
+//
+//   A short‑lived cache and exponential backoff keep repeated calls
+//   (auto‑refresh) gentle and resilient.
 
 import { logger } from './logger';
-
-// ----- Determine which fetch endpoint to use -----
-const isDevelopment = import.meta.env.DEV;
-
-// List of CORS proxies to try (in order of preference)
-const PROXY_LIST = [
-  // Development proxy (only works in dev)
-  isDevelopment ? '/pinterest-rss' : null,
-  // Public CORS proxies
-  'https://api.allorigins.win/raw?url=',
-  'https://thingproxy.freeboard.io/fetch/',
-  'https://corsproxy.io/?url=',
-].filter(Boolean);
+import { CORS_PROXY_URL } from '../config';
 
 // ----- Simple in‑memory cache for the RSS data -----
 const cache = new Map();
-const CACHE_TTL = 300000; // 5 minutes (was 2)
-
-// ----- Pending fetches deduplication -----
-const pendingFetches = new Map();
+const CACHE_TTL = 120000; // 2 min
 
 const getCached = (key) => {
   const entry = cache.get(key);
@@ -40,10 +31,10 @@ const setCache = (key, data) => {
   cache.set(key, { data, timestamp: Date.now() });
 };
 
-// ----- Backoff helper for retrying after failures -----
+// ----- retrying after failures -----
 const retryTimers = new Map();
-const BACKOFF_BASE = 5000; // 5 seconds
-const BACKOFF_MAX = 60000; // 1 minute
+const BACKOFF_BASE = 5000;
+const BACKOFF_MAX  = 60000;
 
 const shouldRetry = (key) => {
   const next = retryTimers.get(key) || 0;
@@ -52,7 +43,10 @@ const shouldRetry = (key) => {
 
 const recordFailure = (key) => {
   const prev = retryTimers.get(key) || 0;
-  const delay = Math.min((prev ? (Date.now() - prev) * 2 : BACKOFF_BASE), BACKOFF_MAX);
+  const delay = Math.min(
+    prev ? (Date.now() - prev) * 2 : BACKOFF_BASE,
+    BACKOFF_MAX
+  );
   retryTimers.set(key, Date.now() + delay);
 };
 
@@ -60,14 +54,7 @@ const resetBackoff = (key) => {
   retryTimers.delete(key);
 };
 
-// ----- Sanitize XML string: remove control characters except allowed ones -----
-// Allowed XML 1.0 characters: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
-const sanitizeXml = (text) => {
-  // eslint-disable-next-line no-control-regex
-  return text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, ' ');
-};
-
-// ----- Helper: parse Pinterest board URL -----
+// -----  parse Pinterest board URL -----
 export const parseBoardUrl = (boardUrl) => {
   try {
     const url = new URL(boardUrl);
@@ -84,20 +71,38 @@ export const parseBoardUrl = (boardUrl) => {
   }
 };
 
-// ----- Helper: parse XML text into a Document -----
+// ----- parse Pinterest pin URL -----
+/**
+ * Extracts the pin ID from a standard Pinterest pin URL
+ * 
+ * @param {string} pinUrl - e.g. "https://www.pinterest.com/pin/578360777206614341/"
+ * @returns {string|null} pinId or null if invalid
+ */
+export const parsePinUrl = (pinUrl) => {
+  try {
+    const url = new URL(pinUrl);
+    const parts = url.pathname.split('/').filter(p => p);
+    if (parts.length >= 2 && parts[0] === 'pin') {
+      return parts[1]; // pin id
+    }
+  } catch {
+    // invalid URL
+  }
+  return null;
+};
+
+// ----- Helper: parse XML text into a Document (unchanged) -----
 const parseXML = (text) => {
   const parser = new DOMParser();
-  const sanitized = sanitizeXml(text);
-  const doc = parser.parseFromString(sanitized, 'application/xml');
+  const doc = parser.parseFromString(text, 'application/xml');
   const errorNode = doc.querySelector('parsererror');
   if (errorNode) {
-    const errorMsg = errorNode.textContent || 'Unknown XML parsing error';
-    throw new Error(`XML parse error: ${errorMsg.substring(0, 150)}`);
+    throw new Error(`XML parse error: ${errorNode.textContent}`);
   }
   return doc;
 };
 
-// ----- Helper: extract image URLs from RSS item descriptions -----
+// ----- Helper: extract image URLs from RSS item descriptions (unchanged) -----
 const extractImageUrlsFromItem = (item) => {
   const descElement = item.querySelector('description');
   if (!descElement) return [];
@@ -112,66 +117,111 @@ const extractImageUrlsFromItem = (item) => {
   return matches;
 };
 
-// ----- Build the actual fetch URL for a given proxy and board -----
-const buildFetchUrl = (proxyBase, username, boardName) => {
-  const rssPath = `/${username}/${boardName}.rss`;
-  if (proxyBase === '/pinterest-rss') {
-    // Development proxy
-    return `${proxyBase}${rssPath}`;
-  } else {
-    // External proxy: encode the full Pinterest RSS URL
-    const fullPinterestUrl = `https://www.pinterest.com${rssPath}`;
-    return `${proxyBase}${encodeURIComponent(fullPinterestUrl)}`;
-  }
+// ----- Environment‑aware RSS URL builder -----
+const isDevEnvironment = () => {
+  return (
+    (typeof import.meta !== 'undefined' && import.meta.env?.DEV) ||
+    window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1'
+  );
 };
 
-// ----- Attempt a single fetch with a given proxy and timeout -----
-const attemptFetch = async (proxyBase, username, boardName, timeoutMs = 30000) => {
-  const fetchUrl = buildFetchUrl(proxyBase, username, boardName);
-  logger.debug(`Attempting fetch with proxy: ${proxyBase} -> ${fetchUrl}`);
+const buildRssUrl = (username, boardName) => {
+  if (isDevEnvironment()) {
+    return `/pinterest-rss/${username}/${boardName}.rss`;
+  }
+  return `https://www.pinterest.com/${username}/${boardName}.rss`;
+};
 
+// ----- Public CORS proxies -----
+const PUBLIC_PROXIES = [
+  {
+    name: 'allorigins.win',
+    buildUrl: (target) =>
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(target)}`,
+  },
+  {
+    name: 'corsproxy.io',
+    buildUrl: (target) =>
+      `https://corsproxy.io/?${encodeURIComponent(target)}`,
+  },
+  {
+    name: 'codetabs',
+    buildUrl: (target) =>
+      `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`,
+  },
+];
+
+// ----- Generic fetch helper -----
+const FETCH_TIMEOUT_MS = 10000;
+
+/**
+ * Fetches text from a URL with a timeout
+ */
+const fetchWithTimeout = async (url, timeoutMs = FETCH_TIMEOUT_MS) => {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
-
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(fetchUrl, {
-      signal: controller.signal,
-      // Some proxies might need a specific user-agent; we add a generic one.
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; BrainSpace/1.0; +https://notnatedavis.github.io/BrainSpace)',
-      },
-    });
-    clearTimeout(timeoutId);
-
-    logger.debug(`RSS response status: ${response.status} from ${proxyBase}`);
+    const response = await fetch(url, { signal: controller.signal });
     if (!response.ok) {
-      // If status is 408 or 504 (gateway timeout), treat as a proxy failure
-      if (response.status === 408 || response.status === 504) {
-        throw new Error(`Proxy timeout (HTTP ${response.status})`);
-      }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-
-    const xmlText = await response.text();
-    logger.debug(`RSS feed length: ${xmlText.length} characters`);
-    return xmlText;
-  } catch (err) {
-    clearTimeout(timeoutId);
-    // If it's an AbortError, it's our own timeout
-    if (err.name === 'AbortError') {
-      throw new Error('Request timed out after ' + timeoutMs + 'ms');
-    }
-    throw err;
+    return await response.text();
+  } finally {
+    clearTimeout(timer);
   }
 };
 
-// ----- Main board data fetcher with proxy fallback and caching -----
+/**
+ * Universal CORS proxy fetcher
+ * 
+ * If a custom proxy URL is set (CORS_PROXY_URL), it uses that directly
+ * Otherwise it iterates over PUBLIC_PROXIES until one succeeds
+ *
+ * @param {string} targetUrl - The original URL you want to fetch (Pinterest RSS, oEmbed, etc.)
+ * @returns {Promise<string>} response body text
+ */
+const fetchViaProxy = async (targetUrl) => {
+  // 1) User‑supplied proxy
+  if (CORS_PROXY_URL) {
+    const proxyUrl = `${CORS_PROXY_URL}?${encodeURIComponent(targetUrl)}`;
+    logger.debug(`Using custom proxy: ${proxyUrl}`);
+    return await fetchWithTimeout(proxyUrl);
+  }
+
+  // 2) No custom proxy – try public ones
+  logger.debug('No custom proxy configured, trying public proxies...');
+  let lastError = null;
+
+  for (const proxy of PUBLIC_PROXIES) {
+    const proxyUrl = proxy.buildUrl(targetUrl);
+    logger.debug(`Trying proxy "${proxy.name}": ${proxyUrl}`);
+
+    try {
+      const text = await fetchWithTimeout(proxyUrl);
+      logger.debug(`Proxy "${proxy.name}" succeeded, response length: ${text.length}`);
+      return text;
+    } catch (err) {
+      logger.warn(`Proxy "${proxy.name}" failed: ${err.message}`);
+      lastError = err;
+    }
+  }
+
+  throw new Error(
+    `All public CORS proxies failed. Last error: ${lastError?.message}. ` +
+    'Set VITE_PINTEREST_PROXY in your .env file to use your own proxy.'
+  );
+};
+
+// ----- Board data fetcher (unchanged, uses fetchViaProxy for RSS) -----
 export const fetchBoardData = async (boardUrl) => {
   logger.debug(`fetchBoardData called with URL: ${boardUrl}`);
 
   const parsed = parseBoardUrl(boardUrl);
   if (!parsed) {
-    throw new Error('Invalid Pinterest board URL. Expected format: https://www.pinterest.com/username/board-name/');
+    throw new Error(
+      'Invalid Pinterest board URL. Expected format: https://www.pinterest.com/username/board-name/'
+    );
   }
   const { username, boardName } = parsed;
   const cacheKey = `${username}/${boardName}`;
@@ -183,13 +233,7 @@ export const fetchBoardData = async (boardUrl) => {
     return cached;
   }
 
-  // 2) Deduplicate in-flight requests
-  if (pendingFetches.has(cacheKey)) {
-    logger.debug(`Fetch already in progress for "${cacheKey}", waiting for existing promise`);
-    return pendingFetches.get(cacheKey);
-  }
-
-  // 3) Respect backoff – if recently failed, reuse expired cache or throw softly
+  // 2) Respect backoff
   if (!shouldRetry(cacheKey)) {
     if (cached) {
       logger.debug(`Backoff active for "${cacheKey}", serving stale cache`);
@@ -199,102 +243,136 @@ export const fetchBoardData = async (boardUrl) => {
     throw new Error('Too many requests – cooling down');
   }
 
-  // create the promise that tries each proxy
-  const fetchPromise = (async () => {
-    let lastError = null;
-    // try each proxy in sequence
-    for (let i = 0; i < PROXY_LIST.length; i++) {
-      const proxyBase = PROXY_LIST[i];
-      try {
-        const xmlText = await attemptFetch(proxyBase, username, boardName, 30000); // 30s timeout
-        // If we get HTML instead of XML, the proxy might have returned an error page
-        if (xmlText.trim().startsWith('<!DOCTYPE') || xmlText.includes('<html')) {
-          throw new Error('Proxy returned HTML instead of RSS – board may be private or invalid');
-        }
+  const rssUrl = buildRssUrl(username, boardName);
+  logger.debug(`Raw RSS URL: ${rssUrl}`);
 
-        // Parse XML
-        const doc = parseXML(xmlText);
-
-        const channelTitle = doc.querySelector('channel > title');
-        const boardTitle = channelTitle
-          ? channelTitle.textContent.trim()
-          : boardName;
-        logger.debug(`Board title: "${boardTitle}"`);
-
-        const items = doc.querySelectorAll('item');
-        logger.debug(`Found ${items.length} items in RSS feed`);
-        if (items.length === 0) {
-          throw new Error('The board appears to be empty or not public.');
-        }
-
-        const allImageUrls = [];
-        items.forEach((item, index) => {
-          const imgs = extractImageUrlsFromItem(item);
-          logger.debug(`Item ${index + 1}: extracted ${imgs.length} image(s)`);
-          allImageUrls.push(...imgs);
-        });
-
-        // Filter only pinimg.com URLs and deduplicate
-        const pinImages = allImageUrls
-          .filter(url => url.includes('pinimg.com'))
-          .filter((url, idx, arr) => arr.indexOf(url) === idx);
-
-        logger.debug(`Total unique Pinterest images found: ${pinImages.length}`);
-        if (pinImages.length === 0) {
-          throw new Error('No pin images found in the RSS feed. The board may be empty or private.');
-        }
-
-        const result = { title: boardTitle, pinImages };
-
-        // Cache successful response and reset backoff
-        setCache(cacheKey, result);
-        resetBackoff(cacheKey);
-
-        return result;
-      } catch (err) {
-        logger.warn(`Proxy ${proxyBase} failed:`, err.message);
-        lastError = err;
-        // If this was a timeout or 408, we can try the next proxy
-        // Otherwise, maybe it's a permanent error (like 404) – we can stop retrying
-        const isTimeout = err.message.includes('timed out') || err.message.includes('Proxy timeout');
-        const isHtml = err.message.includes('HTML instead of RSS');
-        const is404 = err.message.includes('HTTP 404');
-        if (is404 || isHtml) {
-          // These are likely final errors; no point in trying other proxies
-          break;
-        }
-        // For other errors, continue to next proxy
-        continue;
-      }
-    }
-
-    // If we exhausted all proxies
-    if (lastError) {
-      recordFailure(cacheKey);
-      // If we have stale cache, serve it
-      const stale = getCached(cacheKey);
-      if (stale) {
-        logger.debug('Serving stale cache after all proxies failed');
-        return stale;
-      }
-      throw lastError;
-    }
-
-    // should never happen, just in case
-    throw new Error('No proxy available to fetch board data');
-  })();
-
-  // store the promise in pending map, remove when settled
-  pendingFetches.set(cacheKey, fetchPromise);
+  let xmlText;
   try {
-    const result = await fetchPromise;
-    return result;
-  } finally {
-    pendingFetches.delete(cacheKey);
+    if (isDevEnvironment()) {
+      xmlText = await fetchWithTimeout(rssUrl);
+    } else {
+      xmlText = await fetchViaProxy(rssUrl);   // <-- reused proxy fetcher
+    }
+    logger.debug(`RSS feed length: ${xmlText.length} characters`);
+  } catch (err) {
+    logger.error('Failed to fetch RSS feed:', err);
+    recordFailure(cacheKey);
+    if (cached) {
+      logger.debug('Serving stale cache after fetch error');
+      return cached;
+    }
+    throw new Error(`Unable to load board RSS feed: ${err.message}`);
   }
+
+  let doc;
+  try {
+    doc = parseXML(xmlText);
+  } catch (err) {
+    logger.error('XML parsing failed:', err);
+    recordFailure(cacheKey);
+    if (cached) return cached;
+    throw new Error(`RSS feed could not be parsed: ${err.message}`);
+  }
+
+  const channelTitle = doc.querySelector('channel > title');
+  const boardTitle = channelTitle
+    ? channelTitle.textContent.trim()
+    : boardName;
+  logger.debug(`Board title: "${boardTitle}"`);
+
+  const items = doc.querySelectorAll('item');
+  logger.debug(`Found ${items.length} items in RSS feed`);
+  if (items.length === 0) {
+    recordFailure(cacheKey);
+    if (cached) return cached;
+    throw new Error('The board appears to be empty or not public.');
+  }
+
+  const allImageUrls = [];
+  items.forEach((item, index) => {
+    const imgs = extractImageUrlsFromItem(item);
+    logger.debug(`Item ${index + 1}: extracted ${imgs.length} image(s)`);
+    allImageUrls.push(...imgs);
+  });
+
+  const pinImages = allImageUrls
+    .filter(url => url.includes('pinimg.com'))
+    .filter((url, idx, arr) => arr.indexOf(url) === idx);
+
+  logger.debug(`Total unique Pinterest images found: ${pinImages.length}`);
+  if (pinImages.length === 0) {
+    recordFailure(cacheKey);
+    if (cached) return cached;
+    throw new Error('No pin images found in the RSS feed. The board may be empty or private.');
+  }
+
+  const result = { title: boardTitle, pinImages };
+
+  setCache(cacheKey, result);
+  resetBackoff(cacheKey);
+
+  return result;
 };
 
-// ----- Random image selector -----
+// ----- fetch static pin image via oEmbed -----
+/**
+ * Fetches the static image URL (and optionally title) for a given Pinterest pin URL.
+ * Uses Pinterest's oEmbed endpoint (`https://www.pinterest.com/oembed.json`).
+ *
+ * @param {string} pinUrl - e.g. "https://www.pinterest.com/pin/578360777206614341/"
+ * @returns {Promise<{imageUrl: string, title: string}>}
+ */
+export const fetchPinImageData = async (pinUrl) => {
+  const pinId = parsePinUrl(pinUrl);
+  if (!pinId) {
+    throw new Error('Invalid Pinterest pin URL. Expected format: https://www.pinterest.com/pin/.../');
+  }
+
+  const oembedUrl = `https://www.pinterest.com/oembed.json?url=${encodeURIComponent(pinUrl)}`;
+  logger.debug(`Fetching pin image data via oEmbed: ${oembedUrl}`);
+
+  let responseText;
+  try {
+    if (isDevEnvironment()) {
+      // In dev, oembed.json usually doesn't need proxy (CORS is OK), still use proxy if needed
+      // try direct fetch first, if CORS error, fall back to proxy
+      try {
+        responseText = await fetchWithTimeout(oembedUrl);
+      } catch (directErr) {
+        logger.warn('Direct oEmbed fetch failed, trying proxy:', directErr.message);
+        responseText = await fetchViaProxy(oembedUrl);
+      }
+    } else {
+      responseText = await fetchViaProxy(oembedUrl);
+    }
+  } catch (err) {
+    logger.error('Failed to fetch pin oEmbed data:', err);
+    throw new Error(`Could not retrieve pin image. ${err.message}`);
+  }
+
+  let data;
+  try {
+    data = JSON.parse(responseText);
+  } catch (parseErr) {
+    throw new Error('Invalid JSON from oEmbed endpoint.');
+  }
+
+  // According to Pinterest oEmbed docs, response contains:
+  // - `image_url` (high‑quality image)
+  // - `thumbnail_url`
+  // - `title` (optional)
+  const imageUrl = data.image_url || data.thumbnail_url;
+  if (!imageUrl) {
+    throw new Error('No image found in oEmbed response. The pin may be private or deleted.');
+  }
+
+  return {
+    imageUrl,
+    title: data.title || '',   // optional
+  };
+};
+
+// ----- Random image selector (unchanged) -----
 export const getRandomPinImage = (pinImages) => {
   const randomIndex = Math.floor(Math.random() * pinImages.length);
   return pinImages[randomIndex];

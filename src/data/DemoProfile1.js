@@ -1,29 +1,17 @@
-// Exported BrainSpace profile: Demo1
+// Exported BrainSpace profile: DemoProfile1
 const profile = {
   "id": "exported",
-  "name": "Demo1",
+  "name": "DemoProfile1",
   "tiles": [
     {
-      "id": 1781385079889,
-      "type": "clock",
-      "row": 0,
-      "col": 0,
-      "size": 1,
-      "displayMode": "flip",
-      "bold": true,
-      "italic": true,
-      "fontFamily": "sans",
-      "hourFormat": "12h"
-    },
-    {
-      "id": 1781385081217,
+      "id": 1781315726617,
       "type": "calendar",
-      "row": 3,
-      "col": 0,
-      "size": 1,
+      "row": 0,
+      "col": 2,
+      "size": 2,
       "title": "Calendar",
       "year": 2026,
-      "month": 5,
+      "month": 6,
       "backgroundColor": {
         "h": 0,
         "s": 0,
@@ -33,65 +21,84 @@ const profile = {
       "scale": 1
     },
     {
-      "id": 1781385188845,
-      "type": "board",
-      "row": 0,
-      "col": 3,
-      "size": 1,
-      "title": "[places]🏔️",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/places/",
-      "boardTitle": "[places]🏔️",
-      "pinImageUrl": "https://i.pinimg.com/236x/af/f6/c8/aff6c8085d7d17daf87ea5a8f6ad0af5.jpg",
-      "lastUpdated": 1781385612555,
-      "autoRefreshInterval": 20
-    },
-    {
-      "id": 1781385220361,
-      "type": "board",
-      "row": 1,
-      "col": 3,
-      "size": 1,
-      "title": "[fishies]🐠🪼🦀",
-      "boardUrl": "https://www.pinterest.com/davispereznathaniel/fishies/",
-      "boardTitle": "[fishies]🐠🪼🦀",
-      "pinImageUrl": "https://i.pinimg.com/236x/29/6b/95/296b9550d427933ac34f945a0a50c476.jpg",
-      "lastUpdated": 1781385624634,
-      "autoRefreshInterval": 20
-    },
-    {
-      "id": 1781385519881,
-      "type": "note",
+      "id": 1781315734977,
+      "type": "clock",
       "row": 2,
       "col": 3,
       "size": 1,
+      "displayMode": "flip",
+      "bold": true,
+      "italic": true,
+      "fontFamily": "sans",
+      "hourFormat": "12h",
+      "showDate": false
+    },
+    {
+      "id": 1784657771306,
+      "type": "pinterest",
+      "row": 2,
+      "col": 1,
+      "size": 2,
+      "title": "Epiphyllum Anguliger",
+      "mode": "pin",
+      "boardUrl": "",
+      "boardTitle": "",
+      "pinImageUrl": "",
+      "autoRefreshInterval": 0,
+      "pinUrl": "https://www.pinterest.com/pin/578360777208588720/",
+      "imageUrl": "https://i.pinimg.com/236x/86/93/94/8693943c9b5082149b981d4abf480076.jpg",
+      "lastUpdated": null
+    },
+    {
+      "id": 1784657824328,
+      "type": "pinterest",
+      "row": 1,
+      "col": 0,
+      "size": 1,
+      "title": " ",
+      "mode": "pin",
+      "boardUrl": "",
+      "boardTitle": "",
+      "pinImageUrl": "",
+      "autoRefreshInterval": 0,
+      "pinUrl": "https://www.pinterest.com/pin/578360777207302732/",
+      "imageUrl": "https://i.pinimg.com/236x/62/83/ae/6283ae2453a9029bd7a21a8b1e33fc4e.jpg",
+      "lastUpdated": null
+    },
+    {
+      "id": 1784658011409,
+      "type": "note",
+      "row": 0,
+      "col": 1,
+      "size": 1,
       "title": "",
-      "content": "<b><i><span style=\"font-size: 17px;\"><span style=\"font-size: 18px;\">To Do</span></span></i></b> :<div><span style=\"font-style: italic;\">- make tea</span></div><div><span style=\"font-style: italic;\">- fold laundry</span></div><div><span style=\"font-style: italic;\">- eat cookies</span></div><div><span style=\"font-style: italic;\">- try something new</span></div>",
+      "content": "<b><u>To Do</u> :</b><div><i>-&nbsp; later I would like to water the plants</i></div><div><i>-&nbsp; stretch a lil</i></div>",
       "noteStyle": {
         "bold": false,
         "italic": false,
         "underline": false,
         "fontFamily": "sans",
-        "bgHue": 322,
-        "backgroundColor": "hsl(322, 70%, 92%)"
+        "bgHue": 60,
+        "backgroundColor": "hsl(60, 70%, 92%)"
       }
     }
   ],
   "gridRows": 4,
   "gridCols": 4,
   "bgColor": {
-    "h": 190,
-    "s": 76,
-    "l": 96
+    "h": 354,
+    "s": 29,
+    "l": 93
   },
   "accentColor": {
-    "h": 345,
-    "s": 30,
-    "l": 49
+    "h": 130,
+    "s": 25,
+    "l": 51
   },
-  "backgroundType": "youtube",
-  "backgroundValue": "https://www.youtube.com/watch?v=uQ-TWK1kW3c",
-  "backgroundOpacity": 0.8,
+  "backgroundType": "none",
+  "backgroundValue": "",
+  "backgroundOpacity": 0.85,
   "backgroundMuted": true,
-  "containerOutlineWidth": 15
+  "containerOutlineWidth": 10
 };
 export default profile;

@@ -43,7 +43,8 @@ const profile = {
     },
     {
       "id": 1781315760882,
-      "type": "board",
+      "type": "pinterest",
+      "mode": "board",
       "row": 0,
       "col": 1,
       "size": 2,
