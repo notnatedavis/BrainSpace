@@ -8,16 +8,13 @@
 - (NEW) tileType/
     - Clock (other locations)
         - multiple formats ex. Flip Clock, Hands, Fonts, Italics, Bold, etc. 
-    - Music Player (Spotify playlist import support)
+    - Music Player ? (youtube does this) (Spotify playlist import support)
         - import url to playlist allows ability to shuffle play skip stop rewind (for now future features added later)
         - rough prototype functionality > aesthetics (later)
         
-- (FIX) tileType/
-    - NoteTile
-        - Edit ui & display
-        - fix Fonts not applying issue
-    - Timer Tile
-        - Circle should resize w/ tile (w/ tuning)
+- (FIX) tileType/ ui (mostly for 1x1)
+    - Note Tile Scroll bar and sizing
+    - Timer Scroll bar
 
 - (UPDATE) docs/
     - ReadMe
