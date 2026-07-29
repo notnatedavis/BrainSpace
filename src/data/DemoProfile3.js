@@ -1,17 +1,17 @@
-// Exported BrainSpace profile: DemoProfile3
+// Exported BrainSpace profile: TestDemo3
 const profile = {
   "id": "exported",
-  "name": "DemoProfile3",
+  "name": "TestDemo3",
   "tiles": [
     {
-      "id": 1784658501457,
+      "id": 1781315726617,
       "type": "calendar",
-      "row": 0,
-      "col": 2,
+      "row": 3,
+      "col": 3,
       "size": 2,
       "title": "Calendar",
       "year": 2026,
-      "month": 6,
+      "month": 7,
       "backgroundColor": {
         "h": 0,
         "s": 0,
@@ -21,9 +21,9 @@ const profile = {
       "scale": 1
     },
     {
-      "id": 1784658502914,
+      "id": 1781315734977,
       "type": "clock",
-      "row": 0,
+      "row": 2,
       "col": 1,
       "size": 1,
       "displayMode": "flip",
@@ -34,41 +34,20 @@ const profile = {
       "showDate": true
     },
     {
-      "id": 1784658602854,
-      "type": "pinterest",
-      "row": 1,
-      "col": 0,
+      "id": 1784810797043,
+      "type": "timer",
+      "row": 4,
+      "col": 2,
       "size": 1,
-      "title": " ",
-      "mode": "pin",
-      "boardUrl": "",
-      "boardTitle": "",
-      "pinImageUrl": "",
-      "autoRefreshInterval": 0,
-      "pinUrl": "https://www.pinterest.com/pin/578360777209188211/",
-      "imageUrl": "https://i.pinimg.com/236x/eb/1b/ee/eb1bee7b8b40fa1aec276daf3d7bb681.jpg",
-      "lastUpdated": null
+      "title": "timer",
+      "mode": "countdown",
+      "initialTime": 3600,
+      "visualStyle": "circular"
     },
     {
-      "id": 1784658618955,
+      "id": 1785357467963,
       "type": "pinterest",
-      "row": 1,
-      "col": 1,
-      "size": 1,
-      "title": " ",
-      "mode": "pin",
-      "boardUrl": "",
-      "boardTitle": "",
-      "pinImageUrl": "",
-      "autoRefreshInterval": 0,
-      "pinUrl": "https://www.pinterest.com/pin/578360777208466958/",
-      "imageUrl": "https://i.pinimg.com/236x/1a/f6/0c/1af60cf64f67ae92574b2b89952f2980.jpg",
-      "lastUpdated": null
-    },
-    {
-      "id": 1784658737566,
-      "type": "pinterest",
-      "row": 2,
+      "row": 0,
       "col": 1,
       "size": 2,
       "title": " ",
@@ -77,59 +56,110 @@ const profile = {
       "boardTitle": "",
       "pinImageUrl": "",
       "autoRefreshInterval": 0,
-      "pinUrl": "https://www.pinterest.com/pin/578360777199993556/",
-      "imageUrl": "https://i.pinimg.com/236x/44/10/ff/4410ffd7d7eade57ce26b75890a429a4.jpg",
+      "pinUrl": "https://www.pinterest.com/pin/578360777209188194/",
+      "imageUrl": "https://i.pinimg.com/236x/eb/d9/16/ebd916429a32759282ffea1572bd530d.jpg",
       "lastUpdated": null
     },
     {
-      "id": 1784658891256,
+      "id": 1785357509798,
       "type": "pinterest",
-      "row": 2,
+      "row": 3,
+      "col": 1,
+      "size": 1,
+      "title": " ",
+      "mode": "pin",
+      "boardUrl": "",
+      "boardTitle": "",
+      "pinImageUrl": "",
+      "autoRefreshInterval": 0,
+      "pinUrl": "https://www.pinterest.com/pin/578360777209147477/",
+      "imageUrl": "https://i.pinimg.com/236x/f0/cd/c4/f0cdc47ddb7f9dd5e86c3e7915c8b337.jpg",
+      "lastUpdated": null
+    },
+    {
+      "id": 1785358315767,
+      "type": "pinterest",
+      "row": 1,
       "col": 3,
       "size": 2,
-      "title": "Neck Pain And Tension Relief Workout",
+      "title": "Decorate laptops, Hydro Flasks, cars and more with removable kiss-cut, vinyl decal stickers. Glossy, matte, and transparent options in various sizes. Super durable and water-resistant. Miniature Schnauzer",
       "mode": "pin",
       "boardUrl": "",
       "boardTitle": "",
       "pinImageUrl": "",
       "autoRefreshInterval": 0,
-      "pinUrl": "https://www.pinterest.com/pin/578360777198656157/",
-      "imageUrl": "https://i.pinimg.com/236x/9e/7c/f5/9e7cf5ad90b7455d77eb037129c26249.jpg",
+      "pinUrl": "https://www.pinterest.com/pin/578360777206109085/",
+      "imageUrl": "https://i.pinimg.com/236x/a6/77/f7/a677f79890411dd242a07fae7094d3b5.jpg",
       "lastUpdated": null
     },
     {
-      "id": 1784658967108,
-      "type": "pinterest",
-      "row": 1,
-      "col": 4,
+      "id": 1785360613510,
+      "type": "note",
+      "row": 3,
+      "col": 2,
       "size": 1,
-      "title": " ",
-      "mode": "pin",
-      "boardUrl": "",
-      "boardTitle": "",
-      "pinImageUrl": "",
-      "autoRefreshInterval": 0,
-      "pinUrl": "https://www.pinterest.com/pin/578360777208067850/",
-      "imageUrl": "https://i.pinimg.com/236x/7b/fd/c9/7bfdc951390d28b57b9306c317b51847.jpg",
-      "lastUpdated": null
+      "title": "",
+      "content": "<b><i><u>note 2</u></i></b>",
+      "noteStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "fontFamily": "sans",
+        "bgHue": 60,
+        "backgroundColor": "hsl(60, 70%, 92%)"
+      }
+    },
+    {
+      "id": 1785360617027,
+      "type": "note",
+      "row": 0,
+      "col": 3,
+      "size": 1,
+      "title": "",
+      "content": "<b><i><u>note 3</u></i></b>",
+      "noteStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "fontFamily": "sans",
+        "bgHue": 317,
+        "backgroundColor": "hsl(317, 70%, 92%)"
+      }
+    },
+    {
+      "id": 1785360627673,
+      "type": "note",
+      "row": 2,
+      "col": 0,
+      "size": 1,
+      "title": "",
+      "content": "<b><i><u>note 1</u></i></b>",
+      "noteStyle": {
+        "bold": false,
+        "italic": false,
+        "underline": false,
+        "fontFamily": "sans",
+        "bgHue": 145,
+        "backgroundColor": "hsl(145, 70%, 92%)"
+      }
     }
   ],
-  "gridRows": 4,
+  "gridRows": 5,
   "gridCols": 5,
   "bgColor": {
     "h": 14,
-    "s": 36,
-    "l": 89
+    "s": 85,
+    "l": 85
   },
   "accentColor": {
-    "h": 360,
-    "s": 8,
-    "l": 54
+    "h": 9,
+    "s": 73,
+    "l": 69
   },
   "backgroundType": "none",
   "backgroundValue": "",
-  "backgroundOpacity": 0.73,
+  "backgroundOpacity": 0.85,
   "backgroundMuted": true,
-  "containerOutlineWidth": 18
+  "containerOutlineWidth": 20
 };
 export default profile;

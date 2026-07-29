@@ -12,6 +12,8 @@
 #       \(   _.-" 
 #        `--"
 
+# ----- Repo Specific -----
+
 .vscode/
 .idea/
 .env
