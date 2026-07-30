@@ -71,7 +71,7 @@
 .tile-content {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;               /* was overflow-y: auto – removed scrollbar */
   color: var(--color-text);
   display: flex;
   flex-direction: column;

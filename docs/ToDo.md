@@ -12,9 +12,7 @@
         - import url to playlist allows ability to shuffle play skip stop rewind (for now future features added later)
         - rough prototype functionality > aesthetics (later)
         
-- (FIX) tileType/ ui (mostly for 1x1)
-    - Note Tile Scroll bar and sizing
-    - Timer Scroll bar
+- (FIX) 
 
 - (UPDATE) docs/
     - ReadMe
