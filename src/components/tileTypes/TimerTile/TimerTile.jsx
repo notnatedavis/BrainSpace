@@ -3,6 +3,8 @@
 //   Animations are only available for countdown mode.
 //   All visual elements scale with the tile size (tile.size).
 //   Uses time‑based calculation to remain accurate even when tab is inactive.
+//   When a countdown reaches zero, it plays a single beep and continues
+//   counting upward, displayed as negative time (overrun).
 
 // ----- Imports -----
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -17,6 +19,26 @@ const formatTime = (seconds) => {
   return `${hrs.toString().padStart(2, '0')}:${mins
     .toString()
     .padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
+// ----- Helper: play a short beep using Web Audio API -----
+const playBeep = () => {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + 0.2);
+  } catch (e) {
+    // Silently fail – audio not critical
+    console.warn('Could not play beep:', e);
+  }
 };
 
 // ----- Circular progress ring constants (base size, scaled later) -----
@@ -39,6 +61,7 @@ const TimerTile = ({ tile }) => {
   // ----- State -----
   const [time, setTime] = useState(mode === 'stopwatch' ? 0 : initialTime);
   const [isRunning, setIsRunning] = useState(false);
+  const [overrun, setOverrun] = useState(false); // true when countdown has passed zero
 
   // ----- Refs for time‑based calculations -----
   const startTimeRef = useRef(null);        // timestamp when the current run started
@@ -46,11 +69,18 @@ const TimerTile = ({ tile }) => {
   const pausedTimeRef = useRef(null);       // stored time at pause (for resume)
   const intervalRef = useRef(null);
   const modeRef = useRef(mode);
+  const overrunTriggeredRef = useRef(false); // ensure beep & transition happen only once
 
   // Keep modeRef in sync
   useEffect(() => {
     modeRef.current = mode;
   }, [mode]);
+
+  // Reset overrun trigger when tile props change (e.g., new initialTime)
+  useEffect(() => {
+    overrunTriggeredRef.current = false;
+    setOverrun(false);
+  }, [initialTime]);
 
   // ----- Core tick function: compute current time from start timestamp -----
   const tick = useCallback(() => {
@@ -63,97 +93,126 @@ const TimerTile = ({ tile }) => {
     const elapsed = (Date.now() - startTimeRef.current) / 1000; // seconds since start
 
     let newTime;
+
     if (currentMode === 'stopwatch') {
       newTime = elapsed;
-      // console.debug('[Timer] tick (stopwatch): elapsed =', elapsed); // debug
+      // console.debug('[Timer] tick (stopwatch): elapsed =', elapsed);
     } else {
-      // countdown: remaining = stored remaining - elapsed
-      const remaining = (remainingTimeRef.current ?? 0) - elapsed;
-      newTime = Math.max(0, remaining);
-      // console.debug( // debug
-      //   '[Timer] tick (countdown): remainingRef =',
-      //   remainingTimeRef.current,
-      //   'elapsed =',
-      //   elapsed,
-      //   'newTime =',
-      //   newTime
-      // );
+      // countdown mode
+      if (overrun) {
+        // Already past zero – simply count elapsed time
+        newTime = elapsed; // elapsed is seconds since startTimeRef was set to the moment we crossed zero
+        // console.debug('[Timer] tick (overrun): elapsed =', elapsed);
+      } else {
+        // Normal countdown: remaining = stored remaining - elapsed
+        const remaining = (remainingTimeRef.current ?? 0) - elapsed;
+        newTime = Math.max(0, remaining);
+        // console.debug('[Timer] tick (countdown): remainingRef =', remainingTimeRef.current, 'elapsed =', elapsed, 'newTime =', newTime);
+      }
     }
 
     // Guard against NaN
     if (isNaN(newTime)) {
-      // console.warn('[Timer] tick produced NaN, resetting to 0'); // debug
+      // console.warn('[Timer] tick produced NaN, resetting to 0');
       newTime = 0;
     }
 
+    // ----- Transition to overrun when countdown reaches zero -----
+    if (!overrun && currentMode === 'countdown' && newTime <= 0) {
+      // Only trigger once per countdown
+      if (!overrunTriggeredRef.current) {
+        overrunTriggeredRef.current = true;
+        // Play a single beep
+        playBeep();
+        // Enter overrun state: start counting upward from zero
+        setOverrun(true);
+        // Reset startTimeRef to now, so elapsed = 0 at this moment
+        startTimeRef.current = Date.now();
+        // pausedTimeRef for overrun starts at 0
+        pausedTimeRef.current = 0;
+        // Keep timer running
+        setIsRunning(true);
+        // Set time to 0 (display will show "-00:00:00" briefly)
+        setTime(0);
+        // console.log('[Timer] Entered overrun mode');
+        return; // exit early – the next tick will handle the elapsed time
+      }
+    }
+
+    // For normal countdown (including first tick that hits zero, we skip due to early return)
+    // For stopwatch or overrun, update time normally.
     setTime(newTime);
 
-    // Stop if countdown reaches zero
-    if (currentMode === 'countdown' && newTime <= 0) {
-      // console.log('[Timer] countdown reached zero, stopping'); // debug
+    // Stop if countdown reaches zero and we are NOT in overrun (should not happen because we transition)
+    // but keep as safety: if countdown reaches zero and overrun is false (should be caught above)
+    if (currentMode === 'countdown' && newTime <= 0 && !overrun) {
+      // This should not occur because we set overrun above; but just in case
       setIsRunning(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
     }
-  }, []);
+  }, [overrun]);
 
   // ----- Timer control handlers -----
   const startTimer = useCallback(
     (e) => {
       e.stopPropagation();
       if (isRunning) {
-        // console.log('[Timer] start ignored – already running'); // debug
+        // console.log('[Timer] start ignored – already running');
         return;
       }
 
-      // console.log('[Timer] start – mode:', mode, 'current time:', time, 'initialTime:', initialTime); // debug
+      // console.log('[Timer] start – mode:', mode, 'current time:', time, 'initialTime:', initialTime, 'overrun:', overrun);
 
       // Determine the base time for this run
       let baseTime;
       if (mode === 'stopwatch') {
         // For stopwatch, start from 0 (or the paused time if resuming)
         baseTime = pausedTimeRef.current ?? 0;
-        // For stopwatch, we don't need remainingTimeRef; we just use elapsed directly.
         remainingTimeRef.current = null; // unused
       } else {
-        // For countdown, start from the stored remaining time (or initial if first start)
-        baseTime = pausedTimeRef.current ?? initialTime;
-        // Ensure we don't start from zero
-        if (baseTime <= 0) {
-          // console.log('[Timer] countdown baseTime <= 0, resetting to initialTime'); // debug
-          baseTime = initialTime;
-          pausedTimeRef.current = initialTime;
+        // countdown
+        if (overrun) {
+          // Resuming overrun: continue from the elapsed time we paused at
+          baseTime = pausedTimeRef.current ?? 0;
+          // We don't use remainingTimeRef for overrun
+        } else {
+          // Normal countdown: start from stored remaining time (or initial if first start)
+          baseTime = pausedTimeRef.current ?? initialTime;
+          if (baseTime <= 0) {
+            // If we somehow try to start from zero or negative, reset to initial
+            baseTime = initialTime;
+            pausedTimeRef.current = initialTime;
+          }
+          remainingTimeRef.current = baseTime;
         }
-        remainingTimeRef.current = baseTime;
       }
 
       // Set the start timestamp so that elapsed = (now - startTimeRef) / 1000
-      startTimeRef.current = Date.now();
-      // console.log( // debug
-      //   '[Timer] start – baseTime:',
-      //   baseTime,
-      //   'startTimeRef:',
-      //   startTimeRef.current,
-      //   'remainingTimeRef:',
-      //   remainingTimeRef.current
-      // );
+      if (overrun) {
+        // For overrun, we want elapsed = baseTime at start, so startTimeRef = now - baseTime*1000
+        startTimeRef.current = Date.now() - baseTime * 1000;
+      } else {
+        // For normal countdown/stopwatch, startTimeRef = now
+        startTimeRef.current = Date.now();
+      }
 
+      // console.log('[Timer] start – baseTime:', baseTime, 'startTimeRef:', startTimeRef.current);
       setIsRunning(true);
     },
-    [isRunning, mode, time, initialTime]
+    [isRunning, mode, time, initialTime, overrun]
   );
 
   const pauseTimer = useCallback(
     (e) => {
       e.stopPropagation();
       if (!isRunning) {
-        // console.log('[Timer] pause ignored – not running'); // debug
+        // console.log('[Timer] pause ignored – not running');
         return;
       }
 
-      // console.log('[Timer] pause – current time:', time); // debug
       // Store the current time for later resume
       pausedTimeRef.current = time;
       setIsRunning(false);
@@ -161,6 +220,7 @@ const TimerTile = ({ tile }) => {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
+      // console.log('[Timer] pause – stored time:', pausedTimeRef.current);
     },
     [isRunning, time]
   );
@@ -168,19 +228,23 @@ const TimerTile = ({ tile }) => {
   const resetTimer = useCallback(
     (e) => {
       e.stopPropagation();
-      // console.log('[Timer] reset – mode:', mode, 'initialTime:', initialTime); // debug
+      // console.log('[Timer] reset – mode:', mode, 'initialTime:', initialTime);
       setIsRunning(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
 
+      // Reset overrun state
+      setOverrun(false);
+      overrunTriggeredRef.current = false;
+
       const resetValue = mode === 'stopwatch' ? 0 : initialTime;
       setTime(resetValue);
-      pausedTimeRef.current = resetValue; // store so that next start uses this
+      pausedTimeRef.current = resetValue;
       remainingTimeRef.current = mode === 'countdown' ? resetValue : null;
       startTimeRef.current = null;
-      // console.log('[Timer] reset – set time to:', resetValue); // debug
+      // console.log('[Timer] reset – set time to:', resetValue);
     },
     [mode, initialTime]
   );
@@ -191,11 +255,11 @@ const TimerTile = ({ tile }) => {
       // Tick immediately to avoid a 100ms delay on start
       tick();
       intervalRef.current = setInterval(tick, 100); // update every 100ms for smoothness
-      // console.log('[Timer] interval started'); // debug
+      // console.log('[Timer] interval started');
     } else if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
-      // console.log('[Timer] interval cleared'); // debug
+      // console.log('[Timer] interval cleared');
     }
 
     return () => {
@@ -206,16 +270,19 @@ const TimerTile = ({ tile }) => {
     };
   }, [isRunning, tick]);
 
-  // ----- Estimated finish time (countdown only) -----
+  // ----- Estimated finish time (countdown only, hidden during overrun) -----
   const finishTime = useMemo(() => {
-    if (mode !== 'countdown' || time <= 0) return null;
+    if (mode !== 'countdown' || overrun || time <= 0) return null;
     const finishDate = new Date(Date.now() + time * 1000);
     return finishDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }, [mode, time]);
+  }, [mode, time, overrun]);
 
   // ----- Animation data (only for countdown) -----
   const isCountdown = mode === 'countdown';
-  const progress = isCountdown && initialTime > 0 ? Math.min(1, time / initialTime) : 0;
+  // Clamp progress to 1 for overrun (full ring/bar)
+  const progress = isCountdown && initialTime > 0
+    ? (overrun ? 1 : Math.min(1, time / initialTime))
+    : 0;
 
   // ----- Visual rendering based on visualStyle (only when countdown) -----
   let animationElement = null;
@@ -277,6 +344,11 @@ const TimerTile = ({ tile }) => {
     }
   }
 
+  // ----- Display time (negative sign if overrun) -----
+  const displayTime = overrun ? `-${formatTime(time)}` : formatTime(time);
+  // Overrun colour: red
+  const displayColor = overrun ? '#ef4444' : 'var(--color-text)';
+
   return (
     <div
       className="timer-tile"
@@ -288,7 +360,9 @@ const TimerTile = ({ tile }) => {
       {/* ---- Visual indicator + time display (wrapped together) ---- */}
       <div className="timer-visual">
         {animationElement}
-        <div className="timer-display">{formatTime(time)}</div>
+        <div className="timer-display" style={{ color: displayColor }}>
+          {displayTime}
+        </div>
         {finishTime && <div className="timer-finish-time">~ {finishTime}</div>}
       </div>
 

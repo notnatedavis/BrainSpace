@@ -13,6 +13,7 @@
         - rough prototype functionality > aesthetics (later)
         
 - (FIX) 
+    - save as file ? (causes unverified download, double pop up within page to ensure)
 
 - (UPDATE) docs/
     - ReadMe
