@@ -1,6 +1,7 @@
-//   src/components/common/TileEditModal.jsx
+// src/components/common/TileEditModal.jsx
+// Modal for editing tile properties. Only the close button (X) will exit;
+// clicking outside the modal does nothing to prevent accidental loss of edits.
 
-// ----- Imports -----
 import React, { useContext } from 'react';
 import { TilesContext } from '../../context/TilesContext';
 import tileTypes from '../tileTypes';
@@ -34,7 +35,7 @@ const TileEditModal = () => {
   };
 
   const handleClose = () => {
-    setEditingTileId(null);
+    setEditingTileId(null); // this will unmount the edit component, which may trigger auto‑save
   };
 
   // stop click propagation on modal content so clicking inside doesn't close
@@ -43,7 +44,7 @@ const TileEditModal = () => {
   };
 
   return (
-    <div className="modal-overlay" onClick={handleClose}>
+    <div className="modal-overlay" /* no onClick handler – prevents accidental close */>
       <div className="modal-content" onClick={handleModalContentClick}>
         <button className="modal-close" onClick={handleClose}>×</button>
         <h2>Edit {typeDef.displayName} Tile</h2>

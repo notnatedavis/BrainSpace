@@ -216,14 +216,132 @@ export const TilesProvider = ({ children }) => {
     );
   }, []);
 
+  // ----- Helper: attempt to shift tiles to fit new grid dimensions -----
+  const tryFitTiles = useCallback((currentTiles, newRows, newCols) => {
+    // Make a mutable copy
+    let newTiles = currentTiles.map(t => ({ ...t }));
+
+    // Helper to check if an area is free given current tile layout
+    const isAreaFreeLocal = (tiles, rows, cols, row, col, size, excludeId) => {
+      for (let r = row; r < row + size; r++) {
+        for (let c = col; c < col + size; c++) {
+          if (excludeId) {
+            for (const tile of tiles) {
+              if (tile.id !== excludeId) {
+                const ts = tile.size || 1;
+                if (r >= tile.row && r < tile.row + ts && c >= tile.col && c < tile.col + ts) {
+                  return false;
+                }
+              }
+            }
+          } else {
+            if (isCellOccupied(tiles, rows, cols, r, c)) return false;
+          }
+        }
+      }
+      return true;
+    };
+
+    // ---- Shift rows up if we are shrinking rows ----
+    if (newRows < gridRows) {
+      let anyOverflow = true;
+      let maxIter = 100;
+      while (anyOverflow && maxIter > 0) {
+        anyOverflow = false;
+        maxIter--;
+        // Process tiles with larger row first (bottommost)
+        const sorted = [...newTiles].sort((a, b) => (b.row + (b.size || 1)) - (a.row + (a.size || 1)));
+        for (const tile of sorted) {
+          const size = tile.size || 1;
+          if (tile.row + size > newRows) {
+            // Need to shift up
+            if (tile.row > 0) {
+              const newRow = tile.row - 1;
+              // Check if moving up by 1 is free
+              if (isAreaFreeLocal(newTiles, newRows, newCols, newRow, tile.col, size, tile.id)) {
+                tile.row = newRow;
+                anyOverflow = true; // continue loop
+              } else {
+                // Cannot shift this tile up by 1 – reject
+                return null;
+              }
+            } else {
+              // Already at row 0, cannot shift up
+              return null;
+            }
+          }
+        }
+        // If no tile overflows, break
+        if (!newTiles.some(t => (t.row + (t.size || 1)) > newRows)) {
+          anyOverflow = false;
+        }
+      }
+      // After shifting, some tiles might now overflow? The loop should have resolved.
+      // Final check: if any still overflow, reject
+      if (newTiles.some(t => (t.row + (t.size || 1)) > newRows)) {
+        return null;
+      }
+    }
+
+    // ---- Shift columns left if we are shrinking columns ----
+    if (newCols < gridCols) {
+      let anyOverflow = true;
+      let maxIter = 100;
+      while (anyOverflow && maxIter > 0) {
+        anyOverflow = false;
+        maxIter--;
+        // Process tiles with larger col first (rightmost)
+        const sorted = [...newTiles].sort((a, b) => (b.col + (b.size || 1)) - (a.col + (a.size || 1)));
+        for (const tile of sorted) {
+          const size = tile.size || 1;
+          if (tile.col + size > newCols) {
+            if (tile.col > 0) {
+              const newCol = tile.col - 1;
+              if (isAreaFreeLocal(newTiles, newRows, newCols, tile.row, newCol, size, tile.id)) {
+                tile.col = newCol;
+                anyOverflow = true;
+              } else {
+                return null;
+              }
+            } else {
+              return null;
+            }
+          }
+        }
+        if (!newTiles.some(t => (t.col + (t.size || 1)) > newCols)) {
+          anyOverflow = false;
+        }
+      }
+      if (newTiles.some(t => (t.col + (t.size || 1)) > newCols)) {
+        return null;
+      }
+    }
+
+    // If we got here, all tiles fit
+    return newTiles;
+  }, [gridRows, gridCols]);
+
+  // ----- Resize grid with intelligent shifting -----
   const resizeGrid = useCallback((newRows, newCols) => {
-    setGridRows(newRows);
-    setGridCols(newCols);
-    setTiles(prev => prev.filter(tile => {
-      const s = tile.size || 1;
-      return tile.row + s <= newRows && tile.col + s <= newCols;
-    }));
-  }, []);
+    // Clamp dimensions
+    const clampedRows = Math.min(6, Math.max(3, newRows));
+    const clampedCols = Math.min(6, Math.max(3, newCols));
+
+    // If no change, nothing to do
+    if (clampedRows === gridRows && clampedCols === gridCols) return;
+
+    // Attempt to fit tiles into new dimensions by shifting
+    const adjustedTiles = tryFitTiles(tiles, clampedRows, clampedCols);
+    if (adjustedTiles === null) {
+      // Cannot fit tiles – reject resize
+      return;
+    }
+
+    // Apply new grid size and adjusted tiles
+    setGridRows(clampedRows);
+    setGridCols(clampedCols);
+    setTiles(adjustedTiles);
+  }, [gridRows, gridCols, tiles, tryFitTiles]);
 
   // ----- Profile helpers (including background state and containerOutlineWidth) -----
   const createSnapshot = useCallback(() => ({

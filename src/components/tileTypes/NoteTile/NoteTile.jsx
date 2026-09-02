@@ -162,7 +162,7 @@ const NoteTile = ({ tile }) => {
         cursor: 'pointer',
         borderRadius: 'var(--border-radius)',
         boxSizing: 'border-box',
-        overflow: 'auto',
+        overflow: 'visible', // Removed scrollbar; allow content to overflow visibly
       }}
       onClick={handleTileClick}
     >

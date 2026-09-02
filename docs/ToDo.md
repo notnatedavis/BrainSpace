@@ -21,8 +21,6 @@
         - save file output contents like comment & name
     - tileType/
         - NoteTile/
-            - remove scrollbar from not fitting and expand to max vert & horz
-            - fix weird bug where dragging out of edit model causes exit of note and not saving, update to not exit and save prior if does.
         - Pinterest Board Fix RSS Fetch
         - Image Tile memory compression / smart fetching 
             - never store data of image only url to be fetched upon user request directly i.e. i.pinimg.example...
