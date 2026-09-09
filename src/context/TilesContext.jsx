@@ -436,7 +436,7 @@ export const TilesProvider = ({ children }) => {
 
   const exportProfile = useCallback(() => {
     const snapshot = createSnapshot();
-    const profileName = window.prompt('File name (without extension):', 'Profile');
+    const profileName = window.prompt('Name your file :', 'BrainSpace-');
     if (!profileName) return;
     const profileData = {
       id: 'exported',
@@ -452,7 +452,7 @@ export const TilesProvider = ({ children }) => {
       backgroundMuted: snapshot.backgroundMuted,
       containerOutlineWidth: snapshot.containerOutlineWidth,
     };
-    const fileContent = `// Exported BrainSpace profile: ${profileData.name}
+    const fileContent = `//   BrainSpace-${profileData.name}
 const profile = ${JSON.stringify(profileData, null, 2)};
 export default profile;
 `;

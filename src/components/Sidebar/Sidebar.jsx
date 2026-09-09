@@ -63,7 +63,213 @@ const YoutubeUrlModal = ({ isOpen, onClose, onSetUrl }) => {
   );
 };
 
-// ----- Main -----
+// ----- New modal for file/URL upload (image background) -----
+const FileUploadModal = ({ isOpen, onClose, onSetImage }) => {
+  const [url, setUrl] = useState('');
+  const [preview, setPreview] = useState(null);      // data URL or image URL
+  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
+
+  // Reset state when modal opens
+  React.useEffect(() => {
+    if (isOpen) {
+      setUrl('');
+      setPreview(null);
+      setError('');
+    }
+  }, [isOpen]);
+
+  // Handle file selection via file input
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setError('Selected file is not an image.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setPreview(ev.target.result);
+      setError('');
+    };
+    reader.onerror = () => {
+      setError('Failed to read file.');
+    };
+    reader.readAsDataURL(file);
+    // Reset input so same file can be re‑selected
+    e.target.value = '';
+  };
+
+  // Handle URL input change
+  const handleUrlChange = (e) => {
+    setUrl(e.target.value);
+    // Clear error when user types
+    if (error) setError('');
+  };
+
+  // When URL input loses focus, attempt to load preview
+  const handleUrlBlur = () => {
+    const trimmed = url.trim();
+    if (trimmed) {
+      // Set preview to the URL; the <img> will handle loading errors
+      setPreview(trimmed);
+      setError('');
+    }
+  };
+
+  // Drag‑and‑drop handlers
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      // Drop a file
+      const file = files[0];
+      if (!file.type.startsWith('image/')) {
+        setError('Dropped file is not an image.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setPreview(ev.target.result);
+        setError('');
+      };
+      reader.onerror = () => {
+        setError('Failed to read dropped file.');
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+
+    // Try to get URL from text/uri-list or plain text
+    const uriList = e.dataTransfer.getData('text/uri-list');
+    const plainText = e.dataTransfer.getData('text/plain');
+    const droppedUrl = uriList || plainText;
+    if (droppedUrl && droppedUrl.trim()) {
+      setUrl(droppedUrl.trim());
+      setPreview(droppedUrl.trim());
+      setError('');
+    } else {
+      setError('No valid image or URL dropped.');
+    }
+  };
+
+  // Set the image and close
+  const handleSet = () => {
+    if (!preview) {
+      setError('No image loaded. Please select a file or enter a URL.');
+      return;
+    }
+    onSetImage(preview); // preview can be data URL or image URL
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div
+        className="modal-content file-modal"
+        onClick={(e) => e.stopPropagation()}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+      >
+        <button className="modal-close" onClick={onClose}>×</button>
+        <h2>Upload File / Image URL</h2>
+
+        {/* URL input */}
+        <div style={{ marginBottom: '1rem' }}>
+          <label style={{ display: 'block', marginBottom: '0.25rem', fontWeight: 500 }}>
+            Image URL
+          </label>
+          <input
+            type="text"
+            value={url}
+            onChange={handleUrlChange}
+            onBlur={handleUrlBlur}
+            placeholder="https://example.com/image.jpg"
+            className="youtube-input"
+          />
+          <div style={{ fontSize: '0.8rem', color: 'var(--color-text-light)', marginTop: '0.25rem' }}>
+            Paste an image URL or drag and drop a file/URL onto this modal.
+          </div>
+        </div>
+
+        {/* File picker */}
+        <div style={{ marginBottom: '1rem' }}>
+          <button
+            type="button"
+            className="modal-cancel-btn" // reuse cancel style for neutral button
+            onClick={() => fileInputRef.current.click()}
+            style={{ marginRight: '0.5rem' }}
+          >
+            Choose File
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleFileSelect}
+          />
+          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-light)' }}>
+            (supports JPG, PNG, GIF, etc.)
+          </span>
+        </div>
+
+        {/* Preview area */}
+        {preview && (
+          <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 0.5rem 0', fontWeight: 500, fontSize: '0.9rem' }}>Preview</p>
+            <img
+              src={preview}
+              alt="background preview"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '200px',
+                borderRadius: 'var(--border-radius)',
+                border: '1px solid var(--color-border)',
+                objectFit: 'contain',
+              }}
+              onError={() => {
+                setError('Failed to load image. Please check the URL or file.');
+                setPreview(null);
+              }}
+            />
+          </div>
+        )}
+
+        {/* Error message */}
+        {error && (
+          <div style={{ color: '#ef4444', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            {error}
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+          <button type="button" onClick={onClose} className="modal-cancel-btn">Cancel</button>
+          <button
+            type="button"
+            onClick={handleSet}
+            className="modal-submit-btn"
+            disabled={!preview}
+          >
+            Set Background
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ----- Main Sidebar component -----
 const Sidebar = () => {
   const {
     gridRows,
@@ -82,97 +288,59 @@ const Sidebar = () => {
     setContainerOutlineWidth,
   } = useContext(TilesContext);
 
-  // Hidden file input ref
-  const fileInputRef = useRef(null);
-  // YouTube modal state
+  // State for modals
   const [showYoutubeModal, setShowYoutubeModal] = useState(false);
+  const [showFileModal, setShowFileModal] = useState(false);
 
-  const handleRowsChange = (e) => {
-    resizeGrid(parseInt(e.target.value, 10), gridCols);
-  };
-  
-  const handleColsChange = (e) => {
-    resizeGrid(gridRows, parseInt(e.target.value, 10));
+  // ----- Handlers for background types -----
+  const handleFileBackgroundClick = () => {
+    setShowFileModal(true);
   };
 
-  // ----- File upload handler (static image) -----
-  const handleFileUpload = () => {
-    fileInputRef.current.click();
-  };
-
-  const onFileSelected = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file (JPEG, PNG, GIF, etc.)');
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      if (!window.confirm('File is larger than 5MB. Large GIFs may impact performance. Continue?')) {
-        return;
-      }
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target.result;
-      setBackgroundValue(dataUrl);
-      setBackgroundType('image');
-    };
-    reader.onerror = () => {
-      alert('Failed to read file. Please try again.');
-    };
-    reader.readAsDataURL(file);
-    event.target.value = '';
-  };
-
-  // ----- YouTube background -----
-  const handleYoutubeClick = () => {
+  const handleYoutubeBackgroundClick = () => {
     setShowYoutubeModal(true);
   };
 
-  const setYouTubeBackground = (url) => {
-    setBackgroundValue(url);
-    setBackgroundType('youtube');
-  };
-
-  // ----- Clear background -----
   const handleClearBackground = () => {
     setBackgroundType('none');
     setBackgroundValue('');
   };
 
+  // ----- File upload modal callback -----
+  const setImageBackground = (imageData) => {
+    setBackgroundValue(imageData);
+    setBackgroundType('image');
+  };
+
+  // ----- YouTube modal callback -----
+  const setYouTubeBackground = (url) => {
+    setBackgroundValue(url);
+    setBackgroundType('youtube');
+  };
+
+  // ----- Grid sliders -----
+  const handleRowsChange = (e) => {
+    resizeGrid(parseInt(e.target.value, 10), gridCols);
+  };
+
+  const handleColsChange = (e) => {
+    resizeGrid(gridRows, parseInt(e.target.value, 10));
+  };
+
+  // ----- Render -----
   return (
     <aside className="sidebar">
       <ul>
-        <li onClick={handleFileUpload} style={{ cursor: 'pointer' }}>
+        <li onClick={handleFileBackgroundClick} style={{ cursor: 'pointer' }}>
           Background: File
         </li>
-        <li onClick={handleYoutubeClick} style={{ cursor: 'pointer' }}>
+        <li onClick={handleYoutubeBackgroundClick} style={{ cursor: 'pointer' }}>
           Background: YouTube
         </li>
         <li onClick={handleClearBackground} style={{ cursor: 'pointer' }}>
           Background: None
         </li>
       </ul>
-
-      {/* Hidden file input */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept="image/*,.gif"
-        style={{ display: 'none' }}
-        onChange={onFileSelected}
-      />
-
-      {/* YouTube URL modal */}
-      <YoutubeUrlModal
-        isOpen={showYoutubeModal}
-        onClose={() => setShowYoutubeModal(false)}
-        onSetUrl={setYouTubeBackground}
-      />
 
       {/* ---- Profiles dropdown ---- */}
       <div className="sidebar-section">
@@ -204,14 +372,14 @@ const Sidebar = () => {
           onChange={handleColsChange}
         />
       </div>
-      
-      {/* ---- Border thickness slider (NEW) ---- */}
+
+      {/* ---- Border thickness slider ---- */}
       <div className="sidebar-slider">
         <label htmlFor="border-thickness">Border Thickness: {containerOutlineWidth}px</label>
         <input
           type="range"
           id="border-thickness"
-          min="1"
+          min="0"
           max="20"
           step="1"
           value={containerOutlineWidth}
@@ -252,6 +420,18 @@ const Sidebar = () => {
           onChange={setAccentColor}
         />
       </div>
+
+      {/* ---- Modals ---- */}
+      <YoutubeUrlModal
+        isOpen={showYoutubeModal}
+        onClose={() => setShowYoutubeModal(false)}
+        onSetUrl={setYouTubeBackground}
+      />
+      <FileUploadModal
+        isOpen={showFileModal}
+        onClose={() => setShowFileModal(false)}
+        onSetImage={setImageBackground}
+      />
     </aside>
   );
 };

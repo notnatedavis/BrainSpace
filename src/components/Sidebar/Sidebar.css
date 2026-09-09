@@ -67,7 +67,7 @@
   margin-bottom: var(--space-md);
 }
 
-/* ----- YouTube Modal (reusing TileEditModal styles) ----- */
+/* ----- Modal styles (shared) ----- */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -86,9 +86,11 @@
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
   width: 90%;
-  max-width: 450px;
+  max-width: 480px;
   padding: var(--space-lg);
   position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .modal-close {
@@ -113,6 +115,7 @@
   color: var(--color-primary);
 }
 
+/* YouTube modal specific input */
 .youtube-input {
   width: 100%;
   padding: 0.5rem;
@@ -150,4 +153,37 @@
 
 .modal-submit-btn:hover {
   background: var(--color-accent-dark);
+}
+
+.modal-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* File modal – drop zone is the whole modal content */
+.file-modal {
+  /* Drag over state can be toggled via JS, but we keep it clean */
+}
+
+.file-modal .drop-zone {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  text-align: center;
+  transition: border-color 0.2s, background-color 0.2s;
+  margin-bottom: 1rem;
+}
+
+.file-modal .drop-zone.dragover {
+  border-color: var(--color-accent);
+  background-color: rgba(var(--color-accent), 0.05);
+}
+
+/* Preview image */
+.file-modal .preview-img {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  object-fit: contain;
 }

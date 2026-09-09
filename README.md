@@ -53,6 +53,7 @@ BrainSpace/
 ├── src/
 │   ├── assets/
 │   │   └── test.jpg
+│   │
 │   ├── components/
 │   │   ├── common/
 │   │   │   ├── ColorSlider.css
@@ -60,69 +61,86 @@ BrainSpace/
 │   │   │   ├── ErrorBoundary.jsx
 │   │   │   ├── TileEditModal.css
 │   │   │   └── TileEditModal.jsx
+│   │   │
 │   │   ├── Header/
 │   │   │   ├── Header.css
 │   │   │   └── Header.jsx
+│   │   │
 │   │   ├── Sidebar/
 │   │   │   ├── ProfilesDropdown.css
 │   │   │   ├── ProfilesDropdown.jsx
 │   │   │   ├── Sidebar.css
 │   │   │   └── Sidebar.jsx
+│   │   │
 │   │   ├── Tile/
 │   │   │   ├── Tile.css
 │   │   │   └── Tile.jsx
+│   │   │
 │   │   ├── TileContainer/
 │   │   │   ├── TileContainer.css
 │   │   │   └── TileContainer.jsx
+│   │   │
 │   │   └── tileTypes/
 │   │       ├── BoardTile/
 │   │       │   ├── BoardTile.css
 │   │       │   ├── BoardTile.jsx
 │   │       │   ├── BoardTileEdit.jsx
 │   │       │   └── index.js
+│   │       │ 
 │   │       ├── ImageTile/
 │   │       │   ├── ImageTile.jsx
 │   │       │   ├── ImageTileEdit.jsx
 │   │       │   └── index.js
+│   │       │ 
 │   │       ├── InfoTile/
 │   │       │   ├── index.js
 │   │       │   ├── InfoTile.jsx
 │   │       │   └── InfoTileEdit.jsx
+│   │       │ 
 │   │       ├── NoteTile/
 │   │       │   ├── index.js
 │   │       │   ├── NoteTile.jsx
 │   │       │   └── NoteTileEdit.jsx
+│   │       │ 
 │   │       ├── TimerTile/
 │   │       │   ├── index.js
 │   │       │   ├── TimerTile.css
 │   │       │   ├── TimerTile.jsx
 │   │       │   └── TimerTileEdit.jsx
 │   │       └── index.js
+│   │
 │   ├── context/
 │   │   └── TilesContext.jsx
+│   │
 │   ├── data/
 │   │   ├── DemoProfile1.js
 │   │   ├── DemoProfile2.js
 │   │   └── DemoProfile3.js
+│   │
 │   ├── hooks/
 │   │   ├── useDragDrop.js
 │   │   ├── useGridSize.js
 │   │   └── useTiles.js
+│   │
 │   ├── pages/
 │   │   └── Dashboard/
 │   │       ├── Dashboard.css
 │   │       └── Dashboard.jsx
+│   │
 │   ├── styles/
 │   │   ├── global.css
 │   │   └── variables.css
+│   │
 │   ├── utils/
 │   │   ├── colorUtils.js
 │   │   ├── layoutHelpers.js
 │   │   ├── logger.js
 │   │   └── pinterestApi.js
+│   │
 │   ├── App.jsx
 │   ├── index.js
 │   └── main.jsx
+│
 ├── index.html
 ├── package.json
 ├── README.md
