@@ -15,6 +15,12 @@
   /* Base font size scaled by --calendar-scale (default 1) */
   font-size: calc(clamp(0.3rem, 3cqi, 1.2rem) * var(--calendar-scale, 1));
   color: var(--color-text);
+  outline: none; /* suppress default browser focus ring */
+}
+
+/* Subtle focus ring when the tile is keyboard-focused */
+.calendar-tile-wrapper:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 /* ========== NAVIGATION ========== */
@@ -86,7 +92,8 @@
   border-radius: 0.3em;
   font-size: 0.9em;
   transition: background-color 0.15s, color 0.15s;
-  cursor: default;
+  cursor: pointer; /* days toggle events on click */
+  user-select: none;
 }
 
 .calendar-day > span {
@@ -108,13 +115,24 @@
   background-color: var(--color-border);
 }
 
+/* Today indicator – only rendered when the viewed month is the current month */
 .calendar-day.today {
   box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
 
-.calendar-day.pinned:not(.today) {
-  border: 2px solid var(--color-accent);
-  box-sizing: border-box;
+/* Event indicator – small red dot at the bottom of the cell.
+   Shows on ANY month (including non-current ones). */
+.calendar-day.has-event::after {
+  content: '';
+  position: absolute;
+  bottom: 0.15em;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0.35em;
+  height: 0.35em;
+  background-color: #ef4444;
+  border-radius: 50%;
+  pointer-events: none;
 }
 
 /* ========== MANUAL OVERRIDES FOR DIFFERENT TILE SIZES ========== */

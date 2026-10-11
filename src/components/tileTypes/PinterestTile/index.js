@@ -13,12 +13,13 @@ export default {
   defaultData: () => ({
     title: 'Pinterest Tile',
     mode: 'board',          // 'board' or 'pin'
-    boardUrl: '',           // board shuffle
+    boardUrl: '',           // board shuffle source
     boardTitle: '',
-    pinImageUrl: '',        // board mode auto‑refreshed image
+    pinUrl: '',             // board mode -> currently selected pin URL
+                            // pin   mode -> static pin URL
+    pinImageUrl: '',        // board mode -> validated source image URL
     autoRefreshInterval: 0,
-    pinUrl: '',             // static pin
-    imageUrl: '',           // static pin resolved image
+    imageUrl: '',           // pin mode -> resolved source image URL
     lastUpdated: null,
   }),
 };

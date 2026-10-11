@@ -9,21 +9,13 @@ const CalendarTileEdit = ({ tile, onSave }) => {
   const [backgroundColor, setBackgroundColor] = useState(
     tile.backgroundColor || { h: 0, s: 0, l: 100 }
   );
-  const [pinnedDate, setPinnedDate] = useState(tile.pinnedDate || '');
-  const [scale, setScale] = useState(tile.scale ?? 1);
+  // Default zoom for new calendars: 0.78x. Existing tiles keep their value.
+  const [scale, setScale] = useState(tile.scale ?? 0.78);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    let validPinned = null;
-    if (pinnedDate.trim()) {
-      const date = new Date(pinnedDate);
-      if (!isNaN(date)) {
-        validPinned = date.toISOString().split('T')[0];
-      }
-    }
     onSave({
       backgroundColor,
-      pinnedDate: validPinned,
       scale: Math.min(1.5, Math.max(0.5, scale)),
       title: tile.title,
     });
@@ -84,17 +76,6 @@ const CalendarTileEdit = ({ tile, onSave }) => {
         />
       </div>
 
-      {/* Pinned date (optional) */}
-      <div>
-        <label style={labelStyle}>Pinned date (optional)</label>
-        <input
-          type="date"
-          value={pinnedDate}
-          onChange={(e) => setPinnedDate(e.target.value)}
-          style={inputStyle}
-        />
-      </div>
-
       {/* Zoom / scale slider */}
       <div>
         <label style={labelStyle}>Zoom level: {scale.toFixed(2)}x</label>
@@ -110,6 +91,11 @@ const CalendarTileEdit = ({ tile, onSave }) => {
         <small style={{ color: 'var(--color-text-light)' }}>
           Smaller = more content fits (e.g., for 1x1 tiles)
         </small>
+      </div>
+
+      {/* Hint – events are handled on the tile itself, not in this modal */}
+      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-light)' }}>
+        Events are added by clicking a date on the calendar. Red dots mark days with events.
       </div>
 
       <button type="submit" style={buttonStyle}>

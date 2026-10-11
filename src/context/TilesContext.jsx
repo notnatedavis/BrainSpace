@@ -6,6 +6,13 @@ import tileTypes from '../components/tileTypes';
 import DefaultLandingPage from '../data/DefaultLandingPage';
 export const TilesContext = createContext();
 
+// ----- Profile schema defaults -----
+// Single source of truth for the container outline width. Keep in sync
+// with the range slider bounds in Sidebar.jsx (min="0" max="20").
+const DEFAULT_CONTAINER_OUTLINE_WIDTH = 5;
+const CONTAINER_OUTLINE_WIDTH_MIN = 0;
+const CONTAINER_OUTLINE_WIDTH_MAX = 20;
+
 // Helper: check if a cell (row, col) is occupied by any tile in given tiles array
 const isCellOccupied = (tiles, rows, cols, row, col) => {
   for (const tile of tiles) {
@@ -38,6 +45,33 @@ const isAreaFree = (tiles, rows, cols, row, col, size, excludeId = null) => {
     }
   }
   return true;
+};
+
+// ----- Profile field normalisers -----
+/**
+ * Normalise a container outline width value loaded from an external source
+ * (saved profile, demo profile, or imported file).
+ *
+ * Coerces the value to a finite number, rounds to the nearest integer, and
+ * clamps it within the slider bounds [0, 20]. Falls back to the default when
+ * the input is missing, empty, or not numeric — this prevents malformed
+ * profiles from breaking the outline style or the Sidebar slider.
+ *
+ * @param {*} value - Raw value from a profile object
+ * @returns {number} Safe integer between CONTAINER_OUTLINE_WIDTH_MIN and
+ *                   CONTAINER_OUTLINE_WIDTH_MAX
+ */
+const normalizeContainerOutlineWidth = (value) => {
+  // Treat null / undefined / empty string as "missing"
+  if (value === null || value === undefined || value === '') {
+    return DEFAULT_CONTAINER_OUTLINE_WIDTH;
+  }
+  const num = Number(value);
+  if (!Number.isFinite(num)) return DEFAULT_CONTAINER_OUTLINE_WIDTH;
+  return Math.min(
+    CONTAINER_OUTLINE_WIDTH_MAX,
+    Math.max(CONTAINER_OUTLINE_WIDTH_MIN, Math.round(num))
+  );
 };
 
 // ----- Persistence helpers -----
@@ -77,8 +111,8 @@ export const TilesProvider = ({ children }) => {
   const [editingTileId, setEditingTileId] = useState(null);
   const [bgColor, setBgColor] = useState(DefaultLandingPage.bgColor);
   const [accentColor, setAccentColor] = useState(DefaultLandingPage.accentColor);
-  // NEW: border thickness for TileContainer outline
-  const [containerOutlineWidth, setContainerOutlineWidth] = useState(5); // default 5px
+  // Border thickness for the TileContainer outline (validated on load)
+  const [containerOutlineWidth, setContainerOutlineWidth] = useState(DEFAULT_CONTAINER_OUTLINE_WIDTH);
 
   // ----- Background state -----
   const [backgroundType, setBackgroundType] = useState(DefaultLandingPage.backgroundType || 'none');
@@ -422,7 +456,9 @@ export const TilesProvider = ({ children }) => {
     setBackgroundValue(profile.backgroundValue || '');
     setBackgroundOpacity(profile.backgroundOpacity ?? 0.3);
     setBackgroundMuted(profile.backgroundMuted ?? true);
-    setContainerOutlineWidth(profile.containerOutlineWidth ?? 5);
+    // Normalise the outline width so malformed external data cannot break
+    // the TileContainer outline or the Sidebar slider.
+    setContainerOutlineWidth(normalizeContainerOutlineWidth(profile.containerOutlineWidth));
 
     setActiveProfileId(profile.id);
   }, []);
@@ -484,6 +520,8 @@ export default profile;
           alert('Invalid profile file: missing default export with tiles');
           return;
         }
+        // Normalise once here so the copy kept in the dropdown list and the
+        // copy loaded into state always agree on the outline width.
         const newProfile = {
           ...profile,
           id: Date.now(),
@@ -491,7 +529,7 @@ export default profile;
           backgroundValue: profile.backgroundValue || '',
           backgroundOpacity: profile.backgroundOpacity ?? 0.3,
           backgroundMuted: profile.backgroundMuted ?? true,
-          containerOutlineWidth: profile.containerOutlineWidth ?? 5,
+          containerOutlineWidth: normalizeContainerOutlineWidth(profile.containerOutlineWidth),
         };
         setProfiles(prev => [...prev, newProfile]);
         loadProfile(newProfile);
@@ -526,7 +564,8 @@ export default profile;
     deleteProfile,
     exportProfile,
     importProfileFromFile,
-    // Background exports
+    
+    // background exports
     backgroundType,
     backgroundValue,
     backgroundOpacity,

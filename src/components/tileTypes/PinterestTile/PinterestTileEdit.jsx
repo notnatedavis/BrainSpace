@@ -3,10 +3,10 @@
 // ----- Imports -----
 import React, { useState, useContext } from 'react';
 import {
-  fetchBoardData,
-  getRandomPinImage,
+  fetchRandomValidPin,
   fetchPinImageData,
 } from '../../../utils/pinterestApi';
+import { logger } from '../../../utils/logger';
 import { TilesContext } from '../../../context/TilesContext';
 
 // ----- Main -----
@@ -36,15 +36,18 @@ const PinterestTileEdit = ({ tile, onSave }) => {
     setLoading(true);
     setError('');
     try {
-      const { title: boardTitle, pinImages } = await fetchBoardData(boardUrl);
-      const randomImage = getRandomPinImage(pinImages);
+      logger.debug('[PinterestTileEdit] Refreshing board (manual)…');
+      const result = await fetchRandomValidPin(boardUrl, { maxAttempts: 10 });
       updateTile(tile.id, {
         boardUrl: boardUrl.trim(),
-        boardTitle,
-        pinImageUrl: randomImage,
+        boardTitle: result.boardTitle,
+        pinUrl: result.pinUrl,
+        pinImageUrl: result.imageUrl,
         lastUpdated: Date.now(),
       });
+      logger.debug(`[PinterestTileEdit] Board refresh OK: ${result.imageUrl}`);
     } catch (err) {
+      logger.warn(`[PinterestTileEdit] Board refresh failed: ${err.message}`);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -85,18 +88,21 @@ const PinterestTileEdit = ({ tile, onSave }) => {
           setLoading(false);
           return;
         }
-        const { title: boardTitle, pinImages } = await fetchBoardData(boardUrl);
-        const randomImage = getRandomPinImage(pinImages);
+
+        logger.debug('[PinterestTileEdit] Save → resolving a valid board pin…');
+        const result = await fetchRandomValidPin(boardUrl, { maxAttempts: 10 });
+
         onSave({
           mode: 'board',
           boardUrl: boardUrl.trim(),
-          boardTitle,
-          pinImageUrl: randomImage,
+          boardTitle: result.boardTitle,
+          pinUrl: result.pinUrl,
+          pinImageUrl: result.imageUrl,
           autoRefreshInterval,
           lastUpdated: Date.now(),
-          title: boardTitle,
-          pinUrl: '',
-          imageUrl: '',   // clear static fields
+          title: result.boardTitle,
+          // clear static pin fields
+          imageUrl: '',
         });
       } else {
         if (!pinUrl.trim()) {
@@ -119,6 +125,7 @@ const PinterestTileEdit = ({ tile, onSave }) => {
         });
       }
     } catch (err) {
+      logger.warn(`[PinterestTileEdit] Save failed: ${err.message}`);
       setError(err.message);
     } finally {
       setLoading(false);

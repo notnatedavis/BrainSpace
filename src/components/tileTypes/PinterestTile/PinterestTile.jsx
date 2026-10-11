@@ -2,7 +2,8 @@
 
 // ----- Imports -----
 import React, { useEffect, useRef, useContext } from 'react';
-import { fetchBoardData, getRandomPinImage } from '../../../utils/pinterestApi';
+import { fetchRandomValidPin } from '../../../utils/pinterestApi';
+import { logger } from '../../../utils/logger';
 import { TilesContext } from '../../../context/TilesContext';
 
 // ----- Main -----
@@ -18,7 +19,7 @@ const PinterestTile = ({ tile }) => {
     autoRefreshInterval,
   } = tile;
 
-  // Auto‑refresh for board mode
+  // Auto‑refresh for board mode – fetches a fresh, validated pin each tick.
   useEffect(() => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
@@ -26,16 +27,23 @@ const PinterestTile = ({ tile }) => {
     }
 
     if (mode === 'board' && boardUrl && autoRefreshInterval > 0) {
+      logger.debug(
+        `[PinterestTile] Auto-refresh armed (${autoRefreshInterval}s) for ${boardUrl}`
+      );
+
       intervalRef.current = setInterval(async () => {
         try {
-          const { pinImages } = await fetchBoardData(boardUrl);
-          const randomImage = getRandomPinImage(pinImages);
+          logger.debug('[PinterestTile] Auto-refresh tick – fetching validated pin…');
+          const result = await fetchRandomValidPin(boardUrl, { maxAttempts: 8 });
           updateTile(tile.id, {
-            pinImageUrl: randomImage,
+            pinUrl: result.pinUrl,
+            pinImageUrl: result.imageUrl,
+            boardTitle: result.boardTitle || tile.boardTitle,
             lastUpdated: Date.now(),
           });
+          logger.debug(`[PinterestTile] Auto-refresh OK: ${result.imageUrl}`);
         } catch (err) {
-          console.warn('PinterestTile auto‑refresh failed:', err);
+          logger.warn(`[PinterestTile] Auto-refresh failed: ${err.message}`);
         }
       }, autoRefreshInterval * 1000);
     }
@@ -43,7 +51,7 @@ const PinterestTile = ({ tile }) => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [mode, boardUrl, autoRefreshInterval, tile.id, updateTile]);
+  }, [mode, boardUrl, autoRefreshInterval, tile.id, tile.boardTitle, updateTile]);
 
   // Determine which image to display
   let displayImage = null;

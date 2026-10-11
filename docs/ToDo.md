@@ -10,30 +10,38 @@
 - (NEW) tileType/
     - Clock (other locations)
         - multiple formats ex. Flip Clock, Hands, Fonts, Italics, Bold, etc. 
-    - Music Player ? (youtube does this) (Spotify playlist import support)
+    - Music Player ? (youtube does this)
+        - (Spotify playlist import support)
         - import url to playlist allows ability to shuffle play skip stop rewind (for now future features added later)
         - rough prototype functionality > aesthetics (later)
         
 ---
 
 - (FIX) 
-    - save as file ? (causes unverified download, double pop up within page to ensure)
-        - save file output contents like comment & name
+    - save as file ? 
+        - (causes unverified download, double pop up within page to ensure)
+        - save file output contents like comment & name 
     - tileType/
         - NoteTile/
             - update edit background to match
-        - Pinterest Board Fix RSS Fetch
-        - Image Tile memory compression / smart fetching 
-            - never store data of image only url to be fetched upon user request directly i.e. i.pinimg.example...
+        - PinterestTile/
+            - good
+        - ImageTile/
+            - Image Tile memory compression / smart fetching 
+                - never store data of image only url to be fetched upon user request directly i.e. i.pinimg.example...
+        - CalendarTile/
+            - add events n shi
     - Border Resizing Logic
         - update to introduce smart-safe border resizing logic such that in the instance of an attempt to shrink not permitted if blocking or would cause deletion of existing tiles
             - deeper layer, if possible shift in opposite to create space for border resize operation to permit
+    
 --- 
 
 - (UPDATE) docs/
     - ReadMe
-    - ToDo
+    - ToDo (this fucking format is egregious)
     - other
+- home landing page + proportional dependent sizing
 
 ---
 
