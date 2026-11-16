@@ -14,8 +14,6 @@
 
 # ----- Repo Specific -----
 
-test 
-
 dist/
 .vscode/
 .idea/

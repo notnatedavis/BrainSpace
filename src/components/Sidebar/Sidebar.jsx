@@ -286,6 +286,8 @@ const Sidebar = () => {
     setBackgroundOpacity,
     containerOutlineWidth,
     setContainerOutlineWidth,
+    containerZoom,
+    setContainerZoom,
   } = useContext(TilesContext);
 
   // State for modals
@@ -402,6 +404,20 @@ const Sidebar = () => {
           />
         </div>
       )}
+
+      {/* ---- Container zoom slider (50 %–150 %) ---- */}
+      <div className="sidebar-slider">
+        <label htmlFor="container-zoom">Zoom: {Math.round(containerZoom * 100)}%</label>
+        <input
+          type="range"
+          id="container-zoom"
+          min="0.5"
+          max="1.5"
+          step="0.05"
+          value={containerZoom}
+          onChange={(e) => setContainerZoom(parseFloat(e.target.value))}
+        />
+      </div>
 
       {/* ---- Background colour picker ---- */}
       <div className="sidebar-slider">

@@ -113,6 +113,9 @@ export const TilesProvider = ({ children }) => {
   const [accentColor, setAccentColor] = useState(DefaultLandingPage.accentColor);
   // Border thickness for the TileContainer outline (validated on load)
   const [containerOutlineWidth, setContainerOutlineWidth] = useState(DEFAULT_CONTAINER_OUTLINE_WIDTH);
+  // View‑layer zoom applied only to the TileContainer (and its tiles).
+  // 1.0 = 100 %; the background layer is intentionally unaffected.
+  const [containerZoom, setContainerZoom] = useState(1.0);
 
   // ----- Background state -----
   const [backgroundType, setBackgroundType] = useState(DefaultLandingPage.backgroundType || 'none');
@@ -577,6 +580,8 @@ export default profile;
     updateBackground,
     containerOutlineWidth,
     setContainerOutlineWidth,
+    containerZoom,
+    setContainerZoom,
   };
 
   return (
